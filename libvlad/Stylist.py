@@ -145,7 +145,7 @@ class Stylist(object):
 
 	# stats line
 	stats = ''
-	if dolabel and reslts and not n.is_nsroot:
+	if dolabel and rslts and not n.is_nsroot:
 	    K=0 # K = #genes annotated to this node in the database
 	    if self.nqsets == 1:
 		# for a single query set, just display the stats as two lines of text: p, then k and K.
