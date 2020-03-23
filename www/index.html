@@ -1,0 +1,817 @@
+<html>
+<head>
+    <title>VLAD</title>
+    <script type="text/javascript" src="jscolor/jscolor.js"></script>
+    <script language="javascript">
+function setExpanded(el, bool){
+    el.className = (bool?"expanded":"collapsed");
+}
+function toggleExpanded(el){
+    el = el.parentNode;
+    el.className = (el.className==="expanded"?"collapsed":"expanded");
+}
+
+function setDelButtonDisabled(bool){
+    var b = document.getElementById('delButton');
+    b.disabled = bool;
+}
+function addQuerySet(){
+    var qstbl = document.getElementById("qsets");
+    var i = qstbl.rows.length;
+    var r = qstbl.insertRow(i);
+    var taname = "qs"+i;
+    var qsname = taname+"name";
+    var fname  = taname+"file";
+    var clrname= taname+"color";
+    var colorelt = taname+"colorEl";
+    var html = '<table border="0"><tr><td>' +
+	'<span class="inputlabel">QS Name:</span>' +
+	'</td><td> ' +
+	'<table border="0"><tr><td>' +
+	'<input type="text" name="'+qsname+'">' + 
+	'</td><td>' + 
+	'<input size="8" id="'+colorelt+'" ' +
+		' class="color {hash:true,valueElement:\''+clrname+'\'}" />' +
+	'<input class="invisible" id="'+clrname+'" name="'+clrname+'" />' +
+	'</td></tr></table>' +
+	'</td></tr><tr><td style="text-align:right; vertical-align:top;">' +
+	'<select name="'+taname+'source" onchange="setQSetSource('+i+',this);">' +
+	    '<option value="file" selected="true">Upload File:</option>' +
+	    '<option value="ids"> Enter IDs:</option>' +
+	    '</select>' +
+	'</td><td>' +
+	'<input type="file" name="'+fname+'" onchange="setQS('+i+',this);">' +
+	'<textarea name="'+taname+'" cols="15" rows="3" onchange="setQS('+i+',this);" ' +
+		'class="invisible"></textarea>' +
+	'</td></tr></table>';
+    if( i > 0 )
+        html = '<hr/>' + html;
+    var cell = r.insertCell(0);
+    cell.innerHTML = html;
+    setDelButtonDisabled( i==0 )
+    // bind a colorpicker to the new qs
+    jscolor.bind();
+    // initialize the color.
+    // use the global, colorlist, which is a list of HSV values.
+    // Note that hue values in jscolor.js range from 0-6, while sat and val
+    // range from 0-1. In colorlist, hue ranges 0-1.
+    var c = colorlist[i];
+    document.getElementById(colorelt).color.fromHSV(6*c[0], c[1], c[2]);
+    setColorPickersVisible();
+}
+
+function delQuerySet(){
+    var qstbl = document.getElementById("qsets");
+    var i = qstbl.rows.length;
+    if( i > 1 )
+        qstbl.deleteRow(i-1);
+    setDelButtonDisabled( i<=2 )
+    setColorPickersVisible();
+}
+
+function setColorPickersVisible(){
+    var qstbl = document.getElementById("qsets");
+    var vis = (qstbl.rows.length > 1 ? 'visible' : 'hidden');
+    var i = 0;
+    while(true){
+	var cel = document.getElementById('qs'+i+'colorEl');
+	if(! cel) break;
+	cel.style.visibility = vis;
+	i += 1;
+    }
+}
+
+function getFileName(fileEl){
+    var fn = fileEl.value;
+    var slashi = Math.max(fn.lastIndexOf("/"), fn.lastIndexOf("\\"))
+    fn = fn.substring(slashi+1);
+    return fn;
+}
+
+function setQSetSource(i,elt){
+    var si = elt.selectedIndex;
+    var o = elt.options[si];
+    var v = o.value; // "file" or "ids"
+    var fileInput = elt.form['qs'+i+'file'];
+    var textInput = elt.form['qs'+i];
+    if(v === "file"){
+        fileInput.className = "";
+	textInput.className = "invisible";
+	textInput.value = "";
+    }
+    else {
+	fileInput.className = "invisible";
+	fileInput.value = "";
+        textInput.className = "";
+    }
+}
+
+function setQS(i,el){
+    // called when user selects file 
+    // or updates textarea of the i-th qset.
+    var qsLabelEl = document.getElementsByName("qs"+i+"name")[0];
+    var qsLabel = qsLabelEl.value;
+
+    if(el.type == "file"){
+	var fname = getFileName(el);
+	if(qsLabel == "" || qsLabel == el.baseFileName)
+	    qsLabelEl.value = fname;
+	el.baseFileName = fname;
+    }
+    else {
+	if(qsLabel == "")
+	    qsLabelEl.value = 'qset'+i;
+    }
+}
+
+function setGEnabled(elt){
+    document.getElementById("gLimitBy").disabled = ! elt.checked;
+    document.getElementById("gValue").disabled = ! elt.checked;
+    document.getElementById("gMaxImgSize").disabled = ! elt.checked;
+    document.getElementById("gROI").disabled = ! elt.checked;
+    document.getElementById("gCull").disabled = ! elt.checked;
+    document.getElementById("gLabelEnable").disabled = ! elt.checked;
+    document.getElementById("gBackgroundEl").disabled = ! elt.checked;
+    document.getElementById("gNodeColorEl").disabled = ! elt.checked;
+}
+
+function selectOntology(selector){
+    var chosenoption=selector.options[selector.selectedIndex];
+    var oname = chosenoption.value;
+    var ontolUploadDiv = document.getElementById("__annotOntolUpload__");
+    var selectElt = document.getElementById('evidenceCodeSelect');
+    var helpElt = document.getElementById('evidenceCodeHelp');
+    selectElt.innerHTML = evidenceCodes[oname].tblString;
+    helpElt.innerHTML = evidenceCodes[oname].helpString;
+    if(oname == "__upload__"){
+        ontolUploadDiv.style.visibility = "visible";
+    }
+    else {
+        ontolUploadDiv.style.visibility = "hidden";
+    }
+
+}
+
+function selectAnnotationSet(selector){
+    var chosenoption=selector.options[selector.selectedIndex];
+    var aname = chosenoption.value;
+    var annotUploadDiv = document.getElementById("__annotupload__");
+    if(aname == "__upload__"){
+        annotUploadDiv.style.display = "block";
+	var s = document.getElementById("__annotOntolSelect__");
+	selectOntology(s);
+    }
+    else {
+        annotUploadDiv.style.display = "none";
+	var i = aname.indexOf(":");
+	var ontolname = aname.substring(i+1);
+	var selectElt = document.getElementById('evidenceCodeSelect');
+	var helpElt = document.getElementById('evidenceCodeHelp');
+	selectElt.innerHTML = evidenceCodes[ontolname].tblString;
+	helpElt.innerHTML = evidenceCodes[ontolname].helpString;
+    }
+}
+
+function resetForm(form){
+    form.reset();
+    var aset = document.getElementById("annotationset");
+    selectAnnotationSet(aset);
+    setGEnabled(document.getElementById("gEnable"));
+    for( var i = 0; ; i++ ){
+	var srcEl = form["qs"+i+"source"];
+	if(! srcEl) break;
+	setQSetSource(i, srcEl);
+    }
+}
+
+function validate(form){
+    var msgs = [];
+
+    if(! (form.qs0.value || form.qs0file.value)){
+	msgs.push("At least one Query Set is required.");
+    }
+
+    var fas = form.annotationset;
+    var aset = fas.options[fas.selectedIndex];
+    if(aset.value === "__upload__"){
+	if(!form.annotUploadFile.value)
+	    msgs.push("To upload annotations, a file must be specified.");
+
+	var fos = form.annotOntolSelect;
+	var ontol = fos.options[fos.selectedIndex];
+	if(ontol.value === "__upload__" && ! form.ontolUploadFile.value)
+	    msgs.push("To upload an ontology, a file must be specified.");
+    }
+
+    if(msgs.length > 0){
+	alert(msgs.join("\n"));
+	return false;
+    }
+
+    if(window.currhifinterval){
+	return false;
+    }
+
+    // We're gonna return true - the form will be submitted.
+
+    // record the starting time
+    window.currhifstart = new Date();
+
+    //
+    // Add a section to the results area showing a "Working..." message.
+    var rdiv = document.getElementById("resultsdiv");
+    setExpanded(rdiv.parentNode.parentNode, true);
+    var newr = document.createElement('div');
+    newr.className = 'waiting';
+    newr.innerHTML = '<img src="x.gif" class="closebox" onclick="discardResults(this);" />';
+    rdiv.appendChild(newr);
+    var newrtext = document.createElement('span');
+    newrtext.innerHTML = 'Working...';
+    newr.appendChild(newrtext);
+
+    // create a new hidden iframe that will be the target of the form
+    // submission, and attach it to the doc.
+    window.hif = document.createElement('iframe');
+    var hifname = 'hif'+(new Date()).valueOf();
+    window.hif.id = hifname;
+    window.hif.name = hifname;
+    hif.style.display = "none";
+    document.body.appendChild(hif);
+
+    // set the form's target to the iframe we just created
+    form.target = hifname;
+
+    // Start periodic check if the results are ready..
+    window.currhifinterval = window.setInterval(function(){
+	var hif = window.hif;
+	var hifb = null;
+	if(hif.contentDocument)
+	    hifb = hif.contentDocument.body;
+	else if(hif.contentWindow)
+	    hifb = hif.contentWindow.document.body;
+	else
+	    throw new Error("Cannot get iframe document.");
+	if(hifb.innerHTML){
+	    window.clearInterval(window.currhifinterval);
+	    window.currhifinterval = null;
+	    newrtext.innerHTML = hifb.innerHTML;
+	    newr.className='result';
+	    document.body.removeChild(hif);
+	}
+	else { 
+	    var t = Math.floor((new Date() - window.currhifstart)/1000);
+	    newrtext.innerHTML = 'Working... (' + t + ' sec)'
+	}
+	}, 1000);	// check once a second
+    //
+    return true;
+}
+
+function discardResults(d){
+    while(d.className !== 'waiting' && d.className !== 'result' && d !== document.body)
+        d = d.parentNode;
+    if(d.className === 'waiting' && window.confirm("Really cancel?")){
+	window.clearInterval(window.currhifinterval);
+	window.currhifinterval = null;
+	d.parentNode.removeChild(d);
+	document.body.removeChild(window.hif);
+	window.hif = null;
+    }
+    else if(d.className === 'result' && window.confirm("Really discard result?"))
+	d.parentNode.removeChild(d);
+}
+
+function getWindowScroll(){
+    if(window.pageXOffset === undefined)
+	if(document.body.scrollLeft === undefined)
+	    return [document.documentElement.scrollLeft,document.documentElement.scrollTop];
+	else
+	    return [document.body.scrollLeft,document.body.scrollTop];
+    else 
+	return [window.pageXOffset,window.pageYOffset];
+}
+
+%(vladJavaScriptString)s
+
+window.onload = function(){
+    addQuerySet();
+    selectAnnotationSet(document.getElementById('annotationset'));
+}
+
+</script>
+
+<style type="text/css">
+
+body {
+    background-color: MediumAquaMarine;
+}
+.inputcontrol {
+    vertical-align: top;
+}
+
+.inputlabel {
+    vertical-align: top;
+    padding: 5px;
+    font-weight: bold;
+    padding-left : 18;
+}
+
+.usage {
+    vertical-align: top;
+    font-size : 12px;
+}
+
+.color {
+    cursor : pointer;
+}
+
+.inputsection {
+    width : 150;
+    cursor : pointer;
+}
+
+.expanded .inputsection {
+    background-image: url(minus.gif);
+    background-repeat : no-repeat;
+    background-position : 2 5;
+}
+
+.collapsed .inputsection {
+    background-image: url(plus.gif);
+    background-repeat : no-repeat;
+    background-position : 2 5;
+}
+
+.collapsed .inputcontrol div {
+    display : none;
+}
+
+.collapsed .usage ul {
+    display : none;
+}
+
+.divider {
+    background-color : #333;
+    color : white;
+    font-family : sans-serif;
+}
+
+.invisible {
+    display : none;
+}
+
+.tiny {
+    font-style: italic;
+    font-size: 9px;
+}
+
+.result { 
+    border : thin solid gray;
+}
+
+.closebox {
+    float : right;
+    cursor : pointer;
+}
+
+.waiting {
+    border : thin solid gray;
+    background-image : url(large-loading.gif);
+    background-repeat : no-repeat;
+    background-position : 0% 50%;
+    padding-left : 30px;
+}
+
+.message {
+}
+
+.error-message {
+    color : red;
+}
+
+.warning-message {
+}
+
+.info-message { 
+}
+
+.debug-message {
+}
+
+</style>
+
+</head>
+<body>
+
+<h1><img src="vlad_logo.gif" align="middle" /> Vlad - Gene List Analysis and Visualization</h1>
+<span style="font-size : 10;">Version %(vladVersion)s</span>
+<form action="%(vladCgiUrl)s" method="post" 
+      enctype="multipart/form-data" target="hiddeniframe" 
+      onsubmit="return validate(this);" >
+    <input type="hidden" name="cmd" value="analyze" />
+    <table border="1" cellspacing="2">
+
+    <tr>
+        <td colspan="3" class="divider">
+	Input
+	</td>
+    </tr>
+
+    <tr class="expanded" >
+	<!-- Run name -->
+	<td class="inputsection inputlabel" onclick="toggleExpanded(this);" >
+	    Run Name:
+	</td>
+	<td class="inputcontrol">
+	    <div>
+	    <input type="text" name="runname" size="40" value="Vlad Results" />
+	    </div>
+	    &nbsp;
+	</td>
+	<td class="usage">
+	    Provides a title for the output.
+	    <ul>
+	    <li> The run name appears at the top of the results page.
+	    <li> If this field is blank, a default name will be generated.
+	    </ul>
+	</td>
+    </tr>
+
+    <tr class="expanded" >
+	<!-- Query Set(s)-->
+	<td class="inputsection inputlabel" onclick="toggleExpanded(this);" >
+	    Query Set(s):
+	</td>
+	<td class="inputcontrol">
+	    <div>
+	    <table id="qsets" border="0">
+	    </table>
+	    </div>
+	    &nbsp;
+	</td>
+	<td class="usage">
+	    Specifies set(s) of objects (e.g. genes) to test. Associates a color 
+	    with each set.
+	    <ul>
+	    <li> (Optional) Enter a name for the query set to label the output.
+	         A default will be provided if not specified.
+	    <li> Upload a file of ids and/or symbols, or enter them into the text area.
+	         Ids/symbols should be separated by spaces, commas, newlines, or pipes (vertical bars).
+	    <li> To do a combined analysis of multiple query sets, click "Add query set".
+	    <li> When there is more than one query set, each is assigned a color. You may change
+	    the default color by clicking in the colored box.
+	    <p>
+	    <button type="button" onclick="addQuerySet();">Add query set</button><br/>
+	    <button id="delButton" type="button" onclick="delQuerySet();">Remove query set</button>
+	    </ul>
+	</td>
+    </tr>
+
+    <tr class="expanded" >
+	<!-- Annotation Data Set -->
+	<td class="inputsection inputlabel" onclick="toggleExpanded(this);" >
+	    Annotation Data Set:
+	</td>
+	<td class="inputcontrol" >
+	    <div>
+	    <select name="annotationset" id="annotationset" onchange="selectAnnotationSet(this);" >
+	    %(vladAnnotationSetOptionList)s
+	    <option value="__upload__">Upload your own annotation data set...</option>
+	    </select>
+
+	    <div id="__annotupload__" style="display:none;white-space:nowrap;">
+		<table border="0" cellpadding="2" style="white-space:nowrap;">
+		<tr>
+		<td class="inputlabel"> Annotation File: </td>
+		<td> <input type="file" name="annotUploadFile" /> </td>
+		</tr>
+		<tr>
+		<td class="inputlabel"> Ontology to use: </td>
+		<td>
+		    <select id="__annotOntolSelect__" name="annotOntolSelect" onchange="selectOntology(this);">
+		    %(vladOntologySelectList)s
+		    <option value="__upload__">Upload your own ontology...</option>
+		    </select>
+		</td>
+		</tr>
+		<tr id="__annotOntolUpload__" style="visibility:hidden;" >
+		<td class="inputlabel">OBO File: </td>
+		<td><input type="file" name="ontolUploadFile" /></td>
+		</tr>
+		</table>
+		</span>
+	    </div>
+	    </div>
+	    &nbsp;
+	</td>
+	<td class="usage">
+	    Specifies which set of annotations to use for the analysis.
+	    <ul>
+	    <li> Select one of the data sets listed, or select "Upload your own...".
+	    <li> To upload your own data set: 
+	        <ol>
+		<li> Attach a file in
+	    <a href="http://www.geneontology.org/GO.format.gaf-1_0.shtml" 
+	    >GAF (GO Annotation File) format</a> (version 1.0).
+		<li> Select the ontology that your 
+	    annotations use. Select one of the listed ontologies, or
+	    select "Upload your own...".
+		<li> To upload your own ontology, attach a file in
+		<a href="http://www.geneontology.org/GO.format.obo-1_0.shtml"
+	    >OBO format</a>.
+	        </ol>
+	    </ul>
+	</td>
+    </tr>
+
+    <tr class="collapsed" >
+	<!-- Universe Set(s)-->
+	<td class="inputsection inputlabel" onclick="toggleExpanded(this);" >
+	    Universe Set:
+	</td>
+	<td class="inputcontrol">
+	    <div>
+	    <table border="0">
+	    <tr>
+		<td><span class="inputlabel">IDs:</span></td>
+		<td><textarea name="usids" cols="15" rows="3" ></textarea></td>
+	    </tr>
+	    <tr>
+		<td><span class="inputlabel">File:</span></td>
+		<td><input type="file" name="usfname" /></td>
+	    </tr>
+	    </table>
+	    </div>
+	    &nbsp;
+	</td>
+	<td class="usage">
+	    Optional. Constrains the analysis to a subset of the database.
+	    <ul>
+	    <li> By default, Vlad compares your query set against <u>all</u> the annotated 
+	    objects (e.g. genes) in the database.
+	    <li> Use this field if you want Vlad to comapare against a subset of the database.
+	    <li> Example scenario: You are analyzing results from a custom microarray containing 
+	    probes for 5000 genes. You will get better results from Vlad by specifying the 5000 
+	    genes as the universe set.
+	    <li> Paste ids and/or symbols into text area, or choose a file. 
+	    </ul>
+	</td>
+    </tr>
+
+    <tr>
+        <td colspan="3" class="divider">
+	Analysis
+	</td>
+    </tr>
+
+    <tr class="collapsed" >
+	<!-- Type of analysis -->
+	<td class="inputsection inputlabel" onclick="toggleExpanded(this);" >
+	    Type of analysis:
+	</td>
+	<td class="inputcontrol"> 
+	    <div>
+	    <select name="analysis">
+	    <option value="enrichment" selected="true" >Enrichment</option>
+	    <option value="depletion">Depletion</option>
+	    <option value="percentage">Percentage</option>
+	    </select>
+	    </div>
+	    &nbsp;
+	</td>
+	<td class="usage">
+	    Specifies what kind of statistical analysis to perform.
+	    <ul>
+	    <li>Choose "enrichment" find ontology terms that are overrepresented in
+	    the query set relative to the database.
+	    <li>Choose "depletion" to find terms that are underrepresented.
+	    <li>Choose "percentage" to simply characterize your query sets (no analysis).
+	    </ul>
+	</td>
+    </tr>
+    <tr class="collapsed" >
+	<!-- Evidence Codes to Exclude -->
+	<td class="inputsection inputlabel" onclick="toggleExpanded(this);" > Evidence Codes<br>to Exclude: </td>
+	<td class="inputcontrol" >
+	<div id="evidenceCodeSelect">
+	&nbsp;
+	</div>
+	&nbsp;
+	</td>
+	<td class="usage">
+	    Specifies evidence codes to exclude from processing.
+	    <ul>
+	    <li> Annotations with specified evidence codes are removed.
+	    <li>"NOT" annotations (e.g., Gene Abc does NOT have function f) are
+	    always removed.
+	     <li id="evidenceCodeHelp">
+
+	    </ul>
+	</td>
+    </tr>
+
+    <tr>
+        <td colspan="3" class="divider">
+	Output
+	</td>
+    </tr>
+
+    <tr class="collapsed" >
+	<!-- Tabular Output -->
+        <td class="inputsection inputlabel" onclick="toggleExpanded(this);" >Tabular Output:</td>
+	<td class="inputcontrol">
+	    <div>
+	    <table border="0">
+
+	    <tr>
+	    <td class="inputlabel">HTML:</td>
+	    <td><input type="checkbox" name="tHtml" checked="1" /></td>
+	    </tr>
+
+	    <tr>
+	    <td class="inputlabel">Excel spreadsheet:</td>
+	    <td><input type="checkbox" name="tExcel" /></td>
+	    </tr>
+
+	    <tr>
+	    <td class="inputlabel">Tab delimited:</td>
+	    <td><input type="checkbox" name="tText" /></td>
+	    </tr>
+
+	    </table>
+	    </div>
+	    &nbsp;
+	</td>
+	<td class="usage">
+	    Vlad can output your results in tabular form. Check all desired formats.
+	    <ul>
+	    <li> HTML. If checked, the result page will contain a scrollable table of results.
+	    <li> Excel spreadsheet. If checked, the results are written to an Excel spreadsheet file.
+	    This file is available when you "Save" (download) your results. 
+	    (<span class="error-message">Warning:</span> this option
+	    does not work for very large query sets.)
+	    <li> Tab delimited. If checked, the results are written to a tab-delimited
+	    text file. This file is available when you "Save" (download) your results.
+	    </ul>
+	</td>
+    </tr>
+    <tr class="collapsed" >
+	<!-- Graphical Output -->
+        <td class="inputsection inputlabel" onclick="toggleExpanded(this);" >Graphical Output:</td>
+	<td class="inputcontrol">
+	    <div>
+	    <table border="0">
+
+	    <tr>
+	    <td class="inputlabel">Enable:</td>
+	    <td><input type="checkbox" name="gEnable" id="gEnable" 
+	               checked="1" onclick="setGEnabled(this);" /></td>
+	    </tr>
+
+	    <tr>
+	    <td class="inputlabel">Region(s) of interest:</td>
+	    <td><input type="text" name="gROI" id="gROI" size="20" /></td>
+	    </tr>
+
+	    <tr>
+	    <td class="inputlabel">Limit nodes:</td>
+	    <td>
+	    <select id="gLimitBy" name="gLimitBy">
+	    <option value="topn" selected="true" > ...to top N overall.</option>
+	    <option value="topnlocal" > ...to N local maxima.</option>
+	    <option value="pval"> ...by P-value.</option>
+	    </select>
+	    <br>
+	    <span class="inputlabel">Value: </span>
+	    <input type="text" name="gValue" id="gValue" value="25" size="4" />
+	    </td>
+	    </tr>
+
+	    <tr>
+	    <td class="inputlabel">Cull interior nodes:</td>
+	    <td>
+	    <input type="checkbox" name="gCull" id="gCull" checked="true"/>
+	    </td>
+	    </tr>
+ 
+	    <tr>
+	    <td class="inputlabel">Background color:</td>
+	    <td>
+		<input size="8" id="gBackgroundEl" class="color {hash:true,valueElement:gBackground}" />
+		<input class="invisible" id="gBackground" name="gBackground" value="#ffffff" /> 
+	    </td>
+	    </tr>
+ 
+	    <tr>
+	    <td class="inputlabel">Node color:</td>
+	    <td>
+		<input size="8" id="gNodeColorEl" class="color {hash:true,valueElement:gNodeColor}" />
+		<input class="invisible" id="gNodeColor" name="gNodeColor" value="#d0d0d0" /> 
+	    </td>
+	    </tr>
+ 
+	    <tr>
+	    <td class="inputlabel">Draw labels on nodes:</td>
+	    <td>
+	    <input type="checkbox" name="gLabelEnable" id="gLabelEnable" checked="true"/>
+	    </td>
+	    </tr>
+
+
+	    <tr>
+	    <td class="inputlabel">Max image size:</td>
+	    <td>
+	    <input type="text" name="gMaxImgSize" id="gMaxImgSize" value="15,30" size="5" />
+	    <span class="tiny">(width,height) inches</span>
+	    </td>
+	    </tr>
+
+	    </table>
+	    </div>
+	    &nbsp;
+	</td>
+	<td class="usage">
+	    Vlad can draw a picture of (part of) the ontology with your results
+	    "painted on". 
+	    <ul>
+	    <li> Enable. Graphical output is generated only if this is checked.
+	    <li> Region(s) of interest. 
+	        <ul>
+		<li> If you only want to see specific regions of the ontology, enter the term id(s) here.
+		<li> Any further node limits will be applied within the region.
+		</ul>
+	    <li> Limit nodes/Value. Specifies the set of nodes to be drawn:
+	        <ul>
+		<li> ...to top N overall. Draws the top N scoring terms and their ancestors.
+		     Enter N (an integer) into Value.
+		<li> ...to N local maxima. Draws the top N scoring local maxima (<a href="#">what's this?)</a>) 
+		     and their ancestors. Enter N (an integer) into Value.
+		<li> ...by P-value. Draws terms whose score (minimum P-value) is less than or equal to P.
+		Enter P (a floating point number, e.g., .0001 or 1E-4) into Value.
+		</ul>
+	    <li> Cull interior nodes. 
+		<ul>
+		<li> If not checked, the graph includes selected terms and all their ancestors.
+		<li> If checked, Vlad applies a heuristic to reduce the number of interior nodes. 
+		</ul>
+	    <li> Background color / node color.
+	        <ul>
+		<li> By default, graph nodes are light gray, and the graph background color is white.
+		<li> You can change either of these by clicking in the corresponding box.
+		</ul>
+	    <li> Draw labels on nodes. If checked, term names are drawn on nodes. 
+	    <li> Max image size. Graph image will be scaled if necessary so as not
+	    to exceed this value.
+		<ul>
+		<li> Enter width and height, or enter a single number to use for 
+		     both width and height.
+		<li> Values are in inches.
+		<li> Leave blank to allow unlimited image size.
+		</ul>
+	    </ul>
+	    </td>
+    </tr>
+
+    <tr>
+        <td colspan="3" class="divider">
+	Results
+	</td>
+    </tr>
+    <tr class="collapsed" >
+	<!-- Results -->
+	<td class="inputsection inputlabel" onclick="toggleExpanded(this);" >
+	    Results:
+	</td>
+	<td class="inputcontrol"> 
+	    <div id="resultsdiv">
+	    </div>
+	    &nbsp;
+	</td>
+	<td class="usage">
+	    View your results and/or save them to your local disk.
+	    <ul>
+	    <li> Results are listed in the order generated and labelled with the Run Name.
+	    <li> Each result set is viewable online for a minimum of 24 hours.
+	    <li> At any point during this time, you may save the results
+		 to your local disk.
+	    <li> Saved results look and operate the same as results Viewed online.
+	         However, your browser may require your explicit permission to load
+		 the saved web page the first time.
+	    <li> If you checked "Excel spreadsheet" and/or "Tab delimited" under "Tabular output",
+	         those files are included when you Save.
+	    </ul>
+	</td>
+    </tr>
+
+    <tr>
+    <td colspan="3" class="divider">
+    <input type="submit" />
+    <input type="button" value="Reset" onclick="resetForm(this.form);" />
+    </td>
+    </tr>
+
+    </table>
+    <br />
+</form>
+</body>
+</html>

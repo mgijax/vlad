@@ -1,0 +1,39 @@
+
+Installing Vlad
+
+1. Prerequisites/requirements.
+	i. OS X / Linux. Vlad was developed on OS X and runs on both OS X and Linux. 
+	Should be runnable in any Unix-like OS.
+	ii. Python 2.7. Might also run under 2.4.
+	iii. GraphViz. Vlad draws graphs by calling the dot program, which is part of 
+	GraphViz. (www.graphviz.org)
+
+2. Unpackage the vlad-xxx.tar.gz file:
+	$ gunzip vlad-1.5.2.tar.gz
+	$ tar xf vlad-1.5.2.tar
+
+3. Configure and install vlad in a web-accessible directory. 
+   See instructions in config.default.
+   	$ cd vlad
+	$ cp config.defaults config.cfg
+	$ emacs config.cfg
+	    ... edit ...
+	$ python Install config.cfg
+
+4. At this point, you should be able to point your browser at the URL you configured, 
+and see Vlad's query form.
+
+
+Tip: To get started, leave the data configuration for later. Get Vlad 
+installed and working with just the included sample files, then go back and
+edit configuration to use your own data files. When you change the config, you
+need to rerun Install.
+
+Tip: You can also run Vlad from the command line. For example:
+	$ cd www-vlad/libvlad 	# or wherever you installed it
+	$ python Vlad.py -h	# to get help showing all options
+
+	# example invocation
+	$ python Vlad.py -g ../config.cfg -o ../sampledata/ontologies/gene_ontology.obo -a ../sampledata/annotationSets/gene_association.mgi -f ../sampledata/querySets/dnaRepairGenes.mgi -D .
+ 
+

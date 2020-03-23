@@ -1,0 +1,35 @@
+digraph "Legend" {
+
+    graph [ rankdir="LR" ];
+
+    node [ shape = "circle", width = 0.25, style = "filled", fillcolor="green", fontsize = 9, fixedsize = "true", fontcolor = "black", fontname = "Helvetica" ];
+
+    subgraph "cluster_0" {
+
+	1 [ label="B" ];
+	2 [ label="A" ];
+	1 -> 2 [ label = "B is a type of A", color = "blue", arrowhead = "empty" ];
+
+	3 [ label="B" ];
+	4 [ label="A" ];
+	3 -> 4 [ label = "B is a part of A", color="purple", arrowhead="diamond"];
+
+	5 [ label="B" ];
+	6 [ label="A" ];
+	5 -> 6 [ label = "B regulates A", color="cyan", arrowhead="none"];
+
+	7 [ label="B" ];
+	8 [ label="A" ];
+	7 -> 8 [ label = "B negatively regulates A", color="red", arrowhead="tee"];
+
+	9 [ label="B" ];
+	10 [ label="A" ];
+	9 -> 10 [ label = "B positively regulates A", color="green", arrowhead="vee"];
+
+	11 [ label="B" ];
+	12 [ label="A" ];
+	11 -> 12 [ label = "B is related to A\n(represents multiple connections)", color="black", arrowhead="normal"];
+    }
+
+}
+
