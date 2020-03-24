@@ -7,14 +7,14 @@
 #
 
 import sys
-import ConfigParser
-import Vlad
+import configparser
+from . import Vlad
 
-cp = ConfigParser.ConfigParser()
+cp = configparser.ConfigParser()
 cp.read(sys.argv[1])
 v = Vlad.Vlad()
 oconfigs = v.getOntologyConfig(cp)
 aconfigs = v.getAnnotationSetConfig(cp, oconfigs)
 
-print mkOntologyOptionList(oconfigs)
-print mkAnnotationSetOptionList(aconfigs)
+print(mkOntologyOptionList(oconfigs))
+print(mkAnnotationSetOptionList(aconfigs))

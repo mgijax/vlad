@@ -28,9 +28,9 @@
 #     The nodes are the dict's keys.
 #     Each node maps to a tuple: (in-edges, out-edges)
 #       In-edges is a dict that maps parent nodes to edge data values.
-#	    => a node's direct parents are the keys in this dict
-#	Out-edges is a dict that maps child nodes to edge data values.
-#	    => a node's direct children are the keys in this dict
+#           => a node's direct parents are the keys in this dict
+#       Out-edges is a dict that maps child nodes to edge data values.
+#           => a node's direct children are the keys in this dict
 #
 # Facts:
 #    The nodes of the dag == the keys of the dag's dict.
@@ -45,48 +45,48 @@ import sys
 
 class DAG(object):
     def __init__(self):
-	self.nodes = {}
+        self.nodes = {}
 
     #----------------------------------------------------------
     # STRUCTURING METHODS
     #----------------------------------------------------------
 
     def addNode(self, n):
-	if not self.hasNode(n):
-	    self.__addnode__(n)
-	return self
+        if not self.hasNode(n):
+            self.__addnode__(n)
+        return self
 
     def removeNode(self, n):
         for p in self.iterParents(n):
-	    self.__children__(p).pop(n)
-	for c in self.iterChildren(n):
-	    self.__parents__(c).pop(n)
-	self.nodes.pop(n)
-	return self
+            self.__children__(p).pop(n)
+        for c in self.iterChildren(n):
+            self.__parents__(c).pop(n)
+        self.nodes.pop(n)
+        return self
 
     def addEdge(self, parent, child, edgeData=None, checkCycles=True):
         self.addNode(parent)
-	self.addNode(child)
-	if checkCycles and (parent == child or self.isDescendant(parent, child)):
-	    raise CycleError("Edge would create cycle. parent(%s) child(%s)"%(str(parent), str(child)))
-	self.__children__(parent)[child] = edgeData
-	self.__parents__(child)[parent] = edgeData
-	return self
+        self.addNode(child)
+        if checkCycles and (parent == child or self.isDescendant(parent, child)):
+            raise CycleError("Edge would create cycle. parent(%s) child(%s)"%(str(parent), str(child)))
+        self.__children__(parent)[child] = edgeData
+        self.__parents__(child)[parent] = edgeData
+        return self
 
     def removeEdge(self, parent, child):
         self.__children__(parent).pop(child)
-	self.__parents__(child).pop(parent)
-	return self
+        self.__parents__(child).pop(parent)
+        return self
 
     def clone(self):
         cln = DAG()
-	for n, (parents, children) in self.nodes.iteritems():
-	    cln.nodes[n] = (parents.copy(), children.copy())
-	return cln
+        for n, (parents, children) in self.nodes.items():
+            cln.nodes[n] = (parents.copy(), children.copy())
+        return cln
 
     def clear(self):
         self.nodes = {}
-	return self
+        return self
 
     #----------------------------------------------------------
     # INQUIRY METHODS
@@ -136,34 +136,34 @@ class DAG(object):
     #----------------------------------------------------------
 
     def iterNodes(self):
-        return self.nodes.iterkeys()
+        return iter(self.nodes.keys())
 
     def iterRoots(self):
         for n in self.iterNodes():
-	    if self.isRoot(n):
-	        yield n
+            if self.isRoot(n):
+                yield n
 
     def iterLeaves(self):
         for n in self.iterNodes():
-	    if self.isLeaf(n):
-	        yield n
+            if self.isLeaf(n):
+                yield n
 
     def iterInEdges(self, n):
-        return self.__parents__(n).iteritems()
+        return iter(self.__parents__(n).items())
 
     def iterParents(self, n):
-        return self.__parents__(n).iterkeys()
+        return iter(self.__parents__(n).keys())
 
     def iterOutEdges(self, n):
-        return self.__children__(n).iteritems()
+        return iter(self.__children__(n).items())
 
     def iterChildren(self, n):
-        return self.__children__(n).iterkeys()
+        return iter(self.__children__(n).keys())
 
     def iterEdges(self):
         for n in self.iterNodes():
-	    for n2,d in self.iterOutEdges(n):
-	        yield n, n2, d
+            for n2,d in self.iterOutEdges(n):
+                yield n, n2, d
 
     #
     # General purpose graph traversal method. A traversal is a procedure for
@@ -178,95 +178,95 @@ class DAG(object):
     # one of the start nodes, and ending just prior to the current node or edge.
     #
     # Args:
-    #	startNodes	None, or list (or other iterable) of nodes. Specifies the
-    #		starting point(s) for the traversal. If None, the default starts
-    #		at the root(s) if traversal is forward, and leaves if reversed.
-    #	reversed	Boolean. If False (the default) traversal descends from
-    #		nodes to their descendants. If True, traversal ascends from nodes
-    #		to their ancestors.
-    #	allPaths	Boolean. If False (the default), a given node is visited 
-    #		exactly once. Otherwise, the node is visited along all possible 
-    #		paths from any start node.
-    #	beforeTraverse  Callable. Callback function invoked immediately prior to
-    #		start of traversal. Function called with the DAG instance.
-    #	afterTraverse  Callable. Callback function invoked immediately following
-    #		end of traversal. Function called with the DAG instance.
-    #	beforeNode  Callable. Callback function invoked at start of visit to each
-    #		node. Function called with three args: the dag, the node, and the
-    #		current path. 
-    #	afterNode  Callable. Callback function invoked at end of visit to each
-    #		node. Function called with three args: the dag, the node, and the
-    #		current path. 
-    #	afterEdge Callable. Callback function invoked immediately prior to crossing
-    #		an edge. Function called with five args: the dag, the current node,
-    #		the other node, the edge data object (if any), and the current path.
-    #	beforeEdge Callable. Callback function invoked immediately prior to crossing
-    #		an edge. Function called with five args: the dag, the current node,
-    #		the other node, the edge data object (if any), and the current path.
+    #   startNodes      None, or list (or other iterable) of nodes. Specifies the
+    #           starting point(s) for the traversal. If None, the default starts
+    #           at the root(s) if traversal is forward, and leaves if reversed.
+    #   reversed        Boolean. If False (the default) traversal descends from
+    #           nodes to their descendants. If True, traversal ascends from nodes
+    #           to their ancestors.
+    #   allPaths        Boolean. If False (the default), a given node is visited 
+    #           exactly once. Otherwise, the node is visited along all possible 
+    #           paths from any start node.
+    #   beforeTraverse  Callable. Callback function invoked immediately prior to
+    #           start of traversal. Function called with the DAG instance.
+    #   afterTraverse  Callable. Callback function invoked immediately following
+    #           end of traversal. Function called with the DAG instance.
+    #   beforeNode  Callable. Callback function invoked at start of visit to each
+    #           node. Function called with three args: the dag, the node, and the
+    #           current path. 
+    #   afterNode  Callable. Callback function invoked at end of visit to each
+    #           node. Function called with three args: the dag, the node, and the
+    #           current path. 
+    #   afterEdge Callable. Callback function invoked immediately prior to crossing
+    #           an edge. Function called with five args: the dag, the current node,
+    #           the other node, the edge data object (if any), and the current path.
+    #   beforeEdge Callable. Callback function invoked immediately prior to crossing
+    #           an edge. Function called with five args: the dag, the current node,
+    #           the other node, the edge data object (if any), and the current path.
     # 
     def traverse(self, 
-		startNodes=None,
-		reversed=False,
-		allPaths=False,
-    		beforeTraverse=None, afterTraverse=None, 
-		beforeNode=None, afterNode=None, 
-		beforeEdge=None, afterEdge=None):
-	visited = set()
-	# Path stack. A path:
-	#  - is an alternating sequence of nodes and edges
-	#  - begins with a startNode
-	#  - ends with the edge (or node) just prior to the current node
-	#    (or edge). That is:
-	# 	beforeNode() and afterNode() see a path whose last
-	#	item is the edge we crossed to get to the node.
-	#	beforeEdge() and afterEdge() see a path whose
-	#	last item is the node from which the edge is crossed.
-	# Note that:
-	#  - when processing a startNode, the path is empty
-	#  - the path item at position i is a node if i is even,
-	#	and an edge if i is odd.
-	#
-	path = [ ]
-	iterEdges = self.iterOutEdges
-	if reversed:
-	    iterEdges = self.iterInEdges
-	# here's the recursive function for "visit"-ing a node
-	def reach(n):
-	    if beforeNode and beforeNode(self, n, path) == False:
-	        return
-	    path.append(n)
-	    visited.add(n)
-	    for (n2,d) in iterEdges(n):
-		if reversed:
-		    p,c = n2,n
-		else:
-		    p,c = n,n2
-		if beforeEdge and beforeEdge(self,p,c,d, path) == False:
-		    continue
-		if allPaths or not n2 in visited:
-		    path.append( (n, n2, d) )
-		    reach(n2)
-		    path.pop()
-		afterEdge and afterEdge(self,p,c,d, path)
-	    path.pop()
-	    afterNode and afterNode(self, n, path)
-	##
-	## Traversal top level:
-	if beforeTraverse and beforeTraverse(self) == False:
-	    return
-	if startNodes is None:
-	    # set start nodes, if not specified.
-	    # start from leaves or roots, depending on traversal direction
-	    if reversed:
-		startNodes = self.iterLeaves()
-	    else:
-		startNodes = self.iterRoots()
-	# visit each start node
-	for r in startNodes:
-	    if self.hasNode(r) and not r in visited:
-		reach(r)
-	# postprocessing hook
-	afterTraverse and afterTraverse(self)
+                startNodes=None,
+                reversed=False,
+                allPaths=False,
+                beforeTraverse=None, afterTraverse=None, 
+                beforeNode=None, afterNode=None, 
+                beforeEdge=None, afterEdge=None):
+        visited = set()
+        # Path stack. A path:
+        #  - is an alternating sequence of nodes and edges
+        #  - begins with a startNode
+        #  - ends with the edge (or node) just prior to the current node
+        #    (or edge). That is:
+        #       beforeNode() and afterNode() see a path whose last
+        #       item is the edge we crossed to get to the node.
+        #       beforeEdge() and afterEdge() see a path whose
+        #       last item is the node from which the edge is crossed.
+        # Note that:
+        #  - when processing a startNode, the path is empty
+        #  - the path item at position i is a node if i is even,
+        #       and an edge if i is odd.
+        #
+        path = [ ]
+        iterEdges = self.iterOutEdges
+        if reversed:
+            iterEdges = self.iterInEdges
+        # here's the recursive function for "visit"-ing a node
+        def reach(n):
+            if beforeNode and beforeNode(self, n, path) == False:
+                return
+            path.append(n)
+            visited.add(n)
+            for (n2,d) in iterEdges(n):
+                if reversed:
+                    p,c = n2,n
+                else:
+                    p,c = n,n2
+                if beforeEdge and beforeEdge(self,p,c,d, path) == False:
+                    continue
+                if allPaths or not n2 in visited:
+                    path.append( (n, n2, d) )
+                    reach(n2)
+                    path.pop()
+                afterEdge and afterEdge(self,p,c,d, path)
+            path.pop()
+            afterNode and afterNode(self, n, path)
+        ##
+        ## Traversal top level:
+        if beforeTraverse and beforeTraverse(self) == False:
+            return
+        if startNodes is None:
+            # set start nodes, if not specified.
+            # start from leaves or roots, depending on traversal direction
+            if reversed:
+                startNodes = self.iterLeaves()
+            else:
+                startNodes = self.iterRoots()
+        # visit each start node
+        for r in startNodes:
+            if self.hasNode(r) and not r in visited:
+                reach(r)
+        # postprocessing hook
+        afterTraverse and afterTraverse(self)
 
     #----------------------------------------------------------
     # ACCESS METHODS
@@ -274,8 +274,8 @@ class DAG(object):
 
     def getNode(self, n):
         if not self.hasNode(n):
-	    raise KeyError(n)
-	return n
+            raise KeyError(n)
+        return n
 
     def getEdge(self, parent, child):
         return self.__children__(parent)[child]
@@ -322,68 +322,68 @@ class DAG(object):
         return str(self.nodes)
 
     def debug(self, fd=sys.stdout):
-	NL='\n'
+        NL='\n'
         def prn(dag,node):
-	    fd.write("NODE:"+str(node)+NL)
-	def pre(dag,node1,node2,edata):
-	    fd.write("EDGE:"+str(edata)+": "+str(node1)+" -> "+str(node2)+NL)
-	self.traverse(beforeNode=prn, beforeEdge=pre)
+            fd.write("NODE:"+str(node)+NL)
+        def pre(dag,node1,node2,edata):
+            fd.write("EDGE:"+str(edata)+": "+str(node1)+" -> "+str(node2)+NL)
+        self.traverse(beforeNode=prn, beforeEdge=pre)
 
 #####################################################################
 
 class Traversal(object):
 
-    beforeTraverse	= None
-    afterTraverse	= None
-    beforeNode		= None
-    afterNode		= None
-    beforeEdge		= None
-    afterEdge		= None
+    beforeTraverse      = None
+    afterTraverse       = None
+    beforeNode          = None
+    afterNode           = None
+    beforeEdge          = None
+    afterEdge           = None
 
     def getResults(self):
         return self
 
     def go(self, dag, startNodes=None, reversed=False, allPaths=False):
-	self.dag = dag
-	self.startNodes = startNodes
-	self.reversed = reversed
-	self.allPaths = allPaths
-	self.dag.traverse(
-	    startNodes = self.startNodes,
-	    reversed = self.reversed,
-	    allPaths = self.allPaths,
-	    beforeTraverse = self.beforeTraverse,
-	    afterTraverse = self.afterTraverse,
-	    beforeNode = self.beforeNode,
-	    afterNode = self.afterNode,
-	    beforeEdge = self.beforeEdge,
-	    afterEdge = self.afterEdge )
-	return self.getResults()
+        self.dag = dag
+        self.startNodes = startNodes
+        self.reversed = reversed
+        self.allPaths = allPaths
+        self.dag.traverse(
+            startNodes = self.startNodes,
+            reversed = self.reversed,
+            allPaths = self.allPaths,
+            beforeTraverse = self.beforeTraverse,
+            afterTraverse = self.afterTraverse,
+            beforeNode = self.beforeNode,
+            afterNode = self.afterNode,
+            beforeEdge = self.beforeEdge,
+            afterEdge = self.afterEdge )
+        return self.getResults()
 
 #-------------------------------------------------------
 
 class SimplePrinter(Traversal):
     def beforeNode(self, dag, node, path):
-	print str(node)
+        print(str(node))
     def beforeEdge(self, dag, p, c, d, path):
-	print str(p), '->', str(c), "["+str(d)+"]"
+        print(str(p), '->', str(c), "["+str(d)+"]")
 
 #-------------------------------------------------------
 
 class Closure(Traversal):
     def __init__(self,nodeSelector=lambda n:True):
         self.closure = {}
-	self.nodeSelector = nodeSelector
+        self.nodeSelector = nodeSelector
     def beforeNode(self,dag,node,path):
         s = set()
-	if self.nodeSelector(node):
-	    s.add(node)
-	self.closure[node] = s
+        if self.nodeSelector(node):
+            s.add(node)
+        self.closure[node] = s
     def afterEdge(self,dag,p,c,d,path):
         if self.reversed:
-	    self.closure[c] |= self.closure[p]
-	else:
-	    self.closure[p] |= self.closure[c]
+            self.closure[c] |= self.closure[p]
+        else:
+            self.closure[p] |= self.closure[c]
     def getResults(self):
         return self.closure
 
@@ -392,15 +392,15 @@ class Closure(Traversal):
 class RedundantEdgeFinder(Traversal):
     def __init__(self):
         self.redges = []
-	self.allPaths=True
+        self.allPaths=True
     def beforeNode(self, dag, node, path):
-	# scan the nodes along the path for edges to me.
-	maxi = len(path)-4 # stop scan two nodes back
+        # scan the nodes along the path for edges to me.
+        maxi = len(path)-4 # stop scan two nodes back
         for i,p in enumerate(path):
-	    if i > maxi:
-	        break
-	    if i%2==0 and dag.hasEdge(p,node):
-		self.redges.append( [p,node,dag.getEdge(p,node)] )
+            if i > maxi:
+                break
+            if i%2==0 and dag.hasEdge(p,node):
+                self.redges.append( [p,node,dag.getEdge(p,node)] )
     def getResults(self):
         return self.redges
 
@@ -409,45 +409,45 @@ class RedundantEdgeFinder(Traversal):
 class SimplePruner(Traversal):
     def __init__(self, nodeFilt=None, edgeFilt=None):
         self.nodeFilt = nodeFilt
-	self.edgeFilt = edgeFilt
-	self.pruneNodes = []
-	self.pruneEdges = []
+        self.edgeFilt = edgeFilt
+        self.pruneNodes = []
+        self.pruneEdges = []
 
     def beforeNode(self, dag, node, path):
         if self.nodeFilt and self.nodeFilt(node):
-	    self.pruneNodes.append(node)
+            self.pruneNodes.append(node)
 
     def beforeEdge(self, dag, p, c, d, path):
-	if self.edgeFilt and self.edgeFilt(p, c, d):
-	   self.pruneEdges.append( (p, c, d) )
+        if self.edgeFilt and self.edgeFilt(p, c, d):
+           self.pruneEdges.append( (p, c, d) )
 
     def afterTraverse(self, dag):
         for (p,c,n) in self.pruneEdges:
-	    dag.removeEdge(p,c)
-	for n in self.pruneNodes:
-	    dag.removeNode(n)
+            dag.removeEdge(p,c)
+        for n in self.pruneNodes:
+            dag.removeNode(n)
 
 #-------------------------------------------------------
 
 class SubgraphExtracter(Traversal):
     def __init__(self, inclusive=True):
-	self.subgraph = None
-	# If True, extraction includes everything reachable
-	# from the start nodes. If False, extraction only includes
-	# the nodes given and any edges between them.
-	self.inclusive = inclusive
+        self.subgraph = None
+        # If True, extraction includes everything reachable
+        # from the start nodes. If False, extraction only includes
+        # the nodes given and any edges between them.
+        self.inclusive = inclusive
     def beforeTraverse(self, dag):
         self.subgraph = DAG()
-	if not self.inclusive:
-	    for n in self.startNodes:
-		if dag.hasNode(n):
-		    self.subgraph.addNode(n)
+        if not self.inclusive:
+            for n in self.startNodes:
+                if dag.hasNode(n):
+                    self.subgraph.addNode(n)
     def beforeNode(self, dag, node, path):
-	if self.inclusive:
-	    self.subgraph.addNode(node)
+        if self.inclusive:
+            self.subgraph.addNode(node)
     def beforeEdge(self, dag, p, c, d, path):
-	if self.inclusive or (self.subgraph.hasNode(p) and self.subgraph.hasNode(c)):
-	    self.subgraph.addEdge(p,c,d)
+        if self.inclusive or (self.subgraph.hasNode(p) and self.subgraph.hasNode(c)):
+            self.subgraph.addEdge(p,c,d)
     def getResults(self):
         return self.subgraph
 
@@ -459,45 +459,45 @@ class DAGMapper(Traversal):
     of the input dag. 
     Functions:
         dagMap(g)
-	nodeMap(n)
-	edgeMap(p,c,p2,c2,d)
+        nodeMap(n)
+        edgeMap(p,c,p2,c2,d)
     '''
     def __init__(self, dagMap = lambda g:DAG(), nodeFilt = lambda n:True, nodeMap = lambda n:n, edgeFilt = lambda p,c,d:True, edgeMap = lambda p,c,p2,c2,d:d ):
         self.dagMap = dagMap
-	self.nodeFilt = nodeFilt
-	self.nodeMap = nodeMap
-	self.edgeFilt = edgeFilt
-	self.edgeMap = edgeMap
-	self.mappedNodes = {}
-	self.mappedEdges = {}
-	self.resultDag = None
+        self.nodeFilt = nodeFilt
+        self.nodeMap = nodeMap
+        self.edgeFilt = edgeFilt
+        self.edgeMap = edgeMap
+        self.mappedNodes = {}
+        self.mappedEdges = {}
+        self.resultDag = None
     def beforeTraverse(self, srcDag):
         self.resultDag = self.dagMap(srcDag)
     def getMappedNode(self, node):
-        if self.mappedNodes.has_key(node):
-	    return self.mappedNodes[node]
-	n2 = self.nodeMap(node)
-	self.mappedNodes[node] = n2
-	return n2
+        if node in self.mappedNodes:
+            return self.mappedNodes[node]
+        n2 = self.nodeMap(node)
+        self.mappedNodes[node] = n2
+        return n2
     def getMappedEdge(self, p, c, d):
         p2 = self.getMappedNode(p)
-	c2 = self.getMappedNode(c)
-	e = (p2,c2)
-	if self.mappedEdges.has_key(e):
-	    return self.mappedEdges(e)
-	d2 = self.edgeMap(p, c, p2, c2, d)
-	self.mappedEdges[e] = d2
-	return d2
+        c2 = self.getMappedNode(c)
+        e = (p2,c2)
+        if e in self.mappedEdges:
+            return self.mappedEdges(e)
+        d2 = self.edgeMap(p, c, p2, c2, d)
+        self.mappedEdges[e] = d2
+        return d2
     def beforeNode(self, dag, node, path):
-	if self.nodeFilt(node):
-	    return self.resultDag.addNode(self.getMappedNode(node))
-	return False
+        if self.nodeFilt(node):
+            return self.resultDag.addNode(self.getMappedNode(node))
+        return False
     def beforeEdge(self, dag, p, c, d, path):
-	if self.edgeFilt(p,c,d):
-	    p2 = self.getMappedNode(p)
-	    c2 = self.getMappedNode(c)
-	    return self.resultDag.addEdge(p2, c2, self.edgeMap(p,c,p2,c2,d))
-	return False
+        if self.edgeFilt(p,c,d):
+            p2 = self.getMappedNode(p)
+            c2 = self.getMappedNode(c)
+            return self.resultDag.addEdge(p2, c2, self.edgeMap(p,c,p2,c2,d))
+        return False
     def getResults(self):
         return self.resultDag
 
@@ -511,9 +511,9 @@ class CycleError(Exception):
 
 if __name__ == "__main__":
     def printeval(expr, env):
-        print expr, eval(expr, env)
+        print(expr, eval(expr, env))
 
-    print """
+    print("""
 #
 # Building this dag:
 #     a
@@ -523,11 +523,11 @@ if __name__ == "__main__":
 # x   d   y
 #
 #
-"""
+""")
     d = DAG()
     d.addEdge('a','b').addEdge('a','c').addEdge('b','d').addEdge('c','d')
     d.addEdge('b','x', 99).addEdge('c','y')
-    print str(d)
+    print(str(d))
     #
     env = {'d':d}
     printeval("d.hasNode('a')", env)
@@ -543,56 +543,56 @@ if __name__ == "__main__":
     pr.go(d)
 
     #
-    print
-    print "Closure:"
+    print()
+    print("Closure:")
     c = Closure().go(d)
-    for (n,descs) in c.iteritems():
-	print str(n), "->",
-	for x in descs:
-	    print str(x),
-	print
-    print
-    print "Reverse Closure:"
+    for (n,descs) in c.items():
+        print(str(n), "->", end=' ')
+        for x in descs:
+            print(str(x), end=' ')
+        print()
+    print()
+    print("Reverse Closure:")
     c = Closure().go(d, reversed=True)
-    for (n,ancs) in c.iteritems():
-	print str(n), "<-",
-	for x in ancs:
-	    print str(x),
-	print
-    print
-    print "Ancestors of d:"
-    print c['d']
+    for (n,ancs) in c.items():
+        print(str(n), "<-", end=' ')
+        for x in ancs:
+            print(str(x), end=' ')
+        print()
+    print()
+    print("Ancestors of d:")
+    print(c['d'])
 
-    print
-    print "Subgraph (c)"
+    print()
+    print("Subgraph (c)")
     sg = SubgraphExtracter().go(d, 'c')
     pr.go(sg)
-    print
-    print "Subgraph (d reversed)"
+    print()
+    print("Subgraph (d reversed)")
     sg = SubgraphExtracter().go(d, 'd', reversed=True)
     pr.go(sg)
-    print
-    print "Clone:"
+    print()
+    print("Clone:")
     d2 = d.clone()
     pr.go(d2)
 
-    print
-    print "Mapper (d reversed)"
+    print()
+    print("Mapper (d reversed)")
     mg = DAGMapper(nodeMap=lambda n:"NODE:%s"%n, edgeMap=lambda p,c,p2,c2,d:"EDGE:%s->%s"%(p,c)).go(d, 'd', reversed=True)
     pr.go(mg)
 
-    print
-    print "Mapper + Filter"
+    print()
+    print("Mapper + Filter")
     mg = DAGMapper(nodeMap=lambda n:"NODE:%s"%n, edgeMap=lambda p,c,p2,c2,d:"EDGE:%s->%s"%(p,c), nodeFilt = lambda n: n!='c', edgeFilt=lambda p,c,d: p!='b' or c!='x').go(d)
     pr.go(mg)
 
-    print
-    print "Prune:"
+    print()
+    print("Prune:")
     p = SimplePruner(nodeFilt=lambda n:n=='c', edgeFilt=lambda p,c,d: p=='a').go(d)
     pr.go(d)
 
-    print
-    print "Clone unaffected by prune"
+    print()
+    print("Clone unaffected by prune")
     pr.go(d2)
 
 

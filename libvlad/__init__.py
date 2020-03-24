@@ -1,2 +1,2 @@
 
-from Vlad import Vlad, VladCGI, VERSION
+from .Vlad import Vlad, VladCGI, VERSION
