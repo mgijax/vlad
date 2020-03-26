@@ -26,7 +26,7 @@ def handleUploads(form, args):
     args.append(aname)
     oname = form['annotOntolSelect'].value
     if oname == '__upload__':
-	oname = writeTempFile(form['ontolUploadFile'].value)
+        oname = writeTempFile(form['ontolUploadFile'].value)
     args.append("-o")
     args.append(oname)
 
@@ -42,125 +42,125 @@ def runVlad(form):
     args.append("--cleanTempFiles")
 
     # run name
-    if form.has_key("runname"):
-	args.append("-R")
-	args.append(form["runname"].value)
+    if "runname" in form:
+        args.append("-R")
+        args.append(form["runname"].value)
 
     # analysis type
-    if form.has_key("analysis"):
-	args.append("-y")
-	args.append(form["analysis"].value)
+    if "analysis" in form:
+        args.append("-y")
+        args.append(form["analysis"].value)
 
     # annotation set
-    if form.has_key("annotationset"):
-	aset = form["annotationset"].value
-	aset = aset.split(":",1)[0]
-	if aset == "__upload__":
-	    handleUploads(form, args)
-	else:
-	    args.append("-a")
-	    args.append(aset)
+    if "annotationset" in form:
+        aset = form["annotationset"].value
+        aset = aset.split(":",1)[0]
+        if aset == "__upload__":
+            handleUploads(form, args)
+        else:
+            args.append("-a")
+            args.append(aset)
 
     # evidence codes
-    if form.has_key("eCodes"):
-	ecs = form.getlist("eCodes")
-	if len(ecs) == 1:
-	    ecs = ecs[0].replace(","," ").split()
-	val = ",".join(ecs)
-	args.append("-x")
-	args.append(val)
+    if "eCodes" in form:
+        ecs = form.getlist("eCodes")
+        if len(ecs) == 1:
+            ecs = ecs[0].replace(","," ").split()
+        val = ",".join(ecs)
+        args.append("-x")
+        args.append(val)
 
     # query sets
     i=0
     while True:
-	qsname = 'qs'+str(i)
-	qsfname = qsname+'file'
-	qssname = qsname+'name'
-	qscname = qsname+'color'
-        if not form.has_key(qsname):
-	    break
-	qs = form[qsname]
-	qsf = form[qsfname]
-	if qsf.filename:
-	    args.append("-q")
-	    args.append(qsf.value)
-	elif qs.value:
-	    args.append("-q")
-	    args.append(qs.value)
-	else:
-	    break
-	#
-	qsn = form[qssname].value
-	if qsn:
-	    args.append("-n")
-	    args.append(qsn)
-	#
-	qsc = form[qscname].value
-	if qsc:
-	    args.append("-c")
-	    args.append(qsc)
-	i += 1
-	    
+        qsname = 'qs'+str(i)
+        qsfname = qsname+'file'
+        qssname = qsname+'name'
+        qscname = qsname+'color'
+        if qsname not in form:
+            break
+        qs = form[qsname]
+        qsf = form[qsfname]
+        if qsf.filename:
+            args.append("-q")
+            args.append(qsf.value)
+        elif qs.value:
+            args.append("-q")
+            args.append(qs.value)
+        else:
+            break
+        #
+        qsn = form[qssname].value
+        if qsn:
+            args.append("-n")
+            args.append(qsn)
+        #
+        qsc = form[qscname].value
+        if qsc:
+            args.append("-c")
+            args.append(qsc)
+        i += 1
+            
     # universe set
-    if form.has_key('usfname') and form['usfname'].filename:
-	args.append("-u")
-	args.append(form['usfname'].value)
-    elif form.has_key('usids'):
-	args.append("-u")
-	args.append(form['usids'].value)
+    if 'usfname' in form and form['usfname'].filename:
+        args.append("-u")
+        args.append(form['usfname'].value)
+    elif 'usids' in form:
+        args.append("-u")
+        args.append(form['usids'].value)
         
     # spreadsheet output enable
-    if form.has_key("tExcel"):
-	args.append("--tExcel")
-    if form.has_key("tHtml"):
-	args.append("--tHtml")
-    if form.has_key("tText"):
-	args.append("--tText")
+    if "tExcel" in form:
+        args.append("--tExcel")
+    if "tHtml" in form:
+        args.append("--tHtml")
+    if "tText" in form:
+        args.append("--tText")
 
     # graphic output enable
-    if form.has_key("gEnable"):
-	args.append("--gEnable")
+    if "gEnable" in form:
+        args.append("--gEnable")
     else:
         args.append("--gDisable")
 
-    if form.has_key("gBackground"):
+    if "gBackground" in form:
         args.append("--gBackground")
-	args.append(form.getvalue("gBackground"))
+        args.append(form.getvalue("gBackground"))
 
-    if form.has_key("gNodeColor"):
+    if "gNodeColor" in form:
         args.append("--gNodeColor")
-	args.append(form.getvalue("gNodeColor"))
+        args.append(form.getvalue("gNodeColor"))
 
-    if form.has_key("gROI"):
+    if "gROI" in form:
         args.append("--gROI")
-	args.append(form.getvalue("gROI"))
+        args.append(form.getvalue("gROI"))
 
-    if form.has_key("gMaxImgSize"):
+    if "gMaxImgSize" in form:
         args.append("--gMaxImgSize")
-	args.append(form.getvalue("gMaxImgSize"))
+        args.append(form.getvalue("gMaxImgSize"))
 
-    if form.has_key("gLabelEnable"):
+    if "gLabelEnable" in form:
         args.append("--gLabelEnable")
     else:
         args.append("--gLabelDisable")
 
-    if form.has_key("gLimitBy"):
+    if "gLimitBy" in form:
         limitby = form['gLimitBy'].value
-	cutoff = form.getvalue("gValue")
-	if limitby == "topn":
-	    cutoff = str(abs(int(cutoff)))
-	elif limitby == "topnlocal":
-	    cutoff = str(-abs(int(cutoff)))
-	elif limitby == "pval":
-	    try:
-		exp = -abs(int(cutoff))
-		cutoff = str(10 ** exp)
-	    except ValueError:
-		cutoff = str(float(cutoff))
-	args.append("--gCutoff")
-	args.append(cutoff)
+        cutoff = form.getvalue("gValue")
+        if limitby == "topn":
+            cutoff = str(abs(int(cutoff)))
+        elif limitby == "topnlocal":
+            cutoff = str(-abs(int(cutoff)))
+        elif limitby == "pval":
+            try:
+                exp = -abs(int(cutoff))
+                cutoff = str(10 ** exp)
+            except ValueError:
+                cutoff = str(float(cutoff))
+        args.append("--gCutoff")
+        args.append(cutoff)
 
-    if form.has_key("gCull"):
+    if "gCull" in form:
         args.append("--gCull")
 
     # write to stdout
@@ -168,22 +168,22 @@ def runVlad(form):
     args.append("-")
 
     try:
-	libvlad.VladCGI().go(args)
+        libvlad.VladCGI().go(args)
     except:
-	cgitb.handler()
+        cgitb.handler()
 
 def main():
-    print "Content-type: text/html"
-    print
+    print("Content-type: text/html")
+    print()
     form = cgi.FieldStorage()
-    if form.has_key('cmd'):
-	cmd = form['cmd'].value
+    if 'cmd' in form:
+        cmd = form['cmd'].value
     else:
         raise RuntimeError("No command.")
     if cmd == "analyze":
         runVlad(form)
     else:
-	raise RuntimeError("Vlad: unknown command: "+cmd)
+        raise RuntimeError("Vlad: unknown command: "+cmd)
 
 #----------------------
 
