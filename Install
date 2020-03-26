@@ -130,7 +130,7 @@ class VladInstaller(object):
                 parts.append('evidenceCodes.%s.tblString = '';\n' % oc.name)
                 parts.append('evidenceCodes.%s.helpString = '';\n' % oc.name)
             else:
-                ecodes = [_f for _f in map(string.strip, oc.evidencecodes.split('\n')) if _f]
+                ecodes = [_f for _f in map(str.strip, oc.evidencecodes.split('\n')) if _f]
                 dfltexclude = set()
                 if hasattr(oc, 'defaultexcluded'):
                     dfltexclude = set(oc.defaultexcluded.split())
@@ -156,7 +156,7 @@ class VladInstaller(object):
         self.srcDir = os.path.abspath(os.path.dirname(__file__))
         self.srcLibDir = os.path.join(self.srcDir, "libvlad")
         self.srcStaticDir = os.path.join(self.srcDir, "www")
-        self.srcPyExcelDir = os.path.join(self.srcDir, "pyExcelerator", "pyExcelerator")
+        #self.srcPyExcelDir = os.path.join(self.srcDir, "pyExcelerator", "pyExcelerator")
 
         self.dstConfigFile = cfgfile
         self.dstConfig = self.readConfig(self.dstConfigFile)
@@ -188,6 +188,7 @@ class VladInstaller(object):
 
         # copy Vlad cgi
         self.cp(os.path.join(self.srcDir, 'vlad.cgi'), self.dstCgiDir)
+        self.cp(os.path.join(self.srcDir, 'vlad.py'), self.dstCgiDir)
 
         # copy config file to installation dir
         dcf = os.path.join(self.dstCgiDir,"config.cfg")
@@ -199,13 +200,15 @@ class VladInstaller(object):
         self.cp(os.path.join(self.srcLibDir, '*.py'), self.dstLibDir)
 
         # copy pyExcelerator library
-        self.cp(self.srcPyExcelDir, self.dstLibDir, recursive=True)
+        #self.cp(self.srcPyExcelDir, self.dstLibDir, recursive=True)
 
         # copy sample data files
+        '''
         self.cp(
                 os.path.join(self.srcDir, 'sampledata'), 
                 os.path.join(self.dstDir, 'sampledata'), 
                 recursive = True)
+        '''
 
         # copy the static content files. Then read the index file
         # and substitute the correct cgi URL.

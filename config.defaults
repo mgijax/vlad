@@ -67,7 +67,7 @@ datadir:	%(vladDir)s/sampledata/ontologies
 name:	Gene Ontology (sample)
 file:	%(datadir)s/gene_ontology.obo
 namespaces:	biological_process|cellular_component|molecular_function
-linkurl:        http://www.godatabase.org/cgi-bin/go.cgi?query=%s&view=details
+linkurl:        http://www.godatabase.org/cgi-bin/go.cgi?query=%%s&view=details
 evidencecodes:
         EXP=Inferred from experiment
         IAS=Inferred from ancestral sequence
@@ -99,7 +99,7 @@ defaultexcluded: ND
 #name:	Mammalian Phenotype Ontology (sample)
 #file:	%(datadir)s/mammalian_phenotype.obo
 #namespaces:	mammalian_phenotype=MPheno.ontology
-#linkurl:        http://www.informatics.jax.org/searches/accession_report.cgi?id=%s
+#linkurl:        http://www.informatics.jax.org/searches/accession_report.cgi?id=%%s
 #evidencecodes:
 #	IMP=inferred from mutant phenotype
 #	TAS=stated by author
@@ -114,7 +114,7 @@ defaultexcluded: ND
 #name:   Mouse Developmental Anatomy (sample)
 #file:   %(datadir)s/mouse_anatomy.obo
 #namespaces:     gxd
-#linkurl: 	http://www.informatics.jax.org/searches/anatdict.cgi?id=%s
+#linkurl: 	http://www.informatics.jax.org/searches/anatdict.cgi?id=%%s
 #evidencecodes:
 #defaultexcluded:
 #
@@ -124,7 +124,7 @@ defaultexcluded: ND
 #name:   Protein Ontology (sample)
 #file:   %(datadir)s/pro.obo
 #namespaces:     protein
-#linkurl:	http://pir.georgetown.edu/cgi-bin/pro/entry_pro?id=%s
+#linkurl:	http://pir.georgetown.edu/cgi-bin/pro/entry_pro?id=%%s
 #evidencecodes:
 #defaultexcluded:
 #
@@ -148,11 +148,11 @@ defaultexcluded: ND
 #    batchurl: <url> Template (%s) for creating batch link.
 #
 # Some common linkurls:
-#   MGI:	http://www.informatics.jax.org/searches/accession_report.cgi?id=%s
-#   RGD:	http://rgd.mcw.edu/query/query.cgi?id=%s
-#   SGD:	http://genome-www4.stanford.edu/cgi-bin/SGD/locus.pl?sgdid=%s
-#   FB:		http://flybase.bio.indiana.edu/.bin/fbidq.html?%s
-#   SPTR:	http://www.expasy.ch/cgi-bin/sprot-search-ac?%s
+#   MGI:	http://www.informatics.jax.org/searches/accession_report.cgi?id=%%s
+#   RGD:	http://rgd.mcw.edu/query/query.cgi?id=%%s
+#   SGD:	http://genome-www4.stanford.edu/cgi-bin/SGD/locus.pl?sgdid=%%s
+#   FB:		http://flybase.bio.indiana.edu/.bin/fbidq.html?%%s
+#   SPTR:	http://www.expasy.ch/cgi-bin/sprot-search-ac?%%s
 #
 
 [AnnotationSet.MGI_GO]
@@ -162,8 +162,8 @@ name:	Gene-Function annotations from MGI (sample)
 file:	%(datadir)s/gene_association.mgi
 ontology:GO
 objtype:Gene
-linkurl:	http://www.informatics.jax.org/searches/accession_report.cgi?id=%s
-batchurl:	http://www.informatics.jax.org/batch/summary?idType=MGI&ids=%s
+linkurl:	http://www.informatics.jax.org/searches/accession_report.cgi?id=%%s
+batchurl:	http://www.informatics.jax.org/batch/summary?idType=MGI&ids=%%s
 
 #[AnnotationSet.MGI_MP_Gene]
 #order:	2
@@ -172,8 +172,8 @@ batchurl:	http://www.informatics.jax.org/batch/summary?idType=MGI&ids=%s
 #file:   %(datadir)s/MPGeneAnnots.txt
 #ontology:MP
 #objtype:Gene
-#linkurl:	http://www.informatics.jax.org/searches/accession_report.cgi?id=%s
-#batchurl:	http://www.informatics.jax.org/batch/summary?idType=MGI&ids=%s
+#linkurl:	http://www.informatics.jax.org/searches/accession_report.cgi?id=%%s
+#batchurl:	http://www.informatics.jax.org/batch/summary?idType=MGI&ids=%%s
 #
 #[AnnotationSet.MGI_MP_Genotype]
 #order:	5
@@ -190,8 +190,8 @@ batchurl:	http://www.informatics.jax.org/batch/summary?idType=MGI&ids=%s
 #file:   %(datadir)s/PROGeneAnnots.txt
 #ontology:PRO
 #objtype:Gene
-#linkurl:	http://www.informatics.jax.org/searches/accession_report.cgi?id=%s
-#batchurl:	http://www.informatics.jax.org/batch/summary?idType=MGI&ids=%s
+#linkurl:	http://www.informatics.jax.org/searches/accession_report.cgi?id=%%s
+#batchurl:	http://www.informatics.jax.org/batch/summary?idType=MGI&ids=%%s
 #
 #[AnnotationSet.GXD_AD_Gene]
 #order:	3
@@ -200,8 +200,8 @@ batchurl:	http://www.informatics.jax.org/batch/summary?idType=MGI&ids=%s
 #file:   %(datadir)s/GXDGeneAnnots.txt
 #ontology:AD
 #objtype:Gene
-#linkurl:	http://www.informatics.jax.org/searches/accession_report.cgi?id=%s
-#batchurl:	http://www.informatics.jax.org/batch/summary?idType=MGI&ids=%s	
+#linkurl:	http://www.informatics.jax.org/searches/accession_report.cgi?id=%%s
+#batchurl:	http://www.informatics.jax.org/batch/summary?idType=MGI&ids=%%s	
 #
 #
 #======================================================

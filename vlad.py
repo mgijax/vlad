@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# Wrapper for invoking vlad
 
 import sys
 import os
@@ -83,7 +83,7 @@ def runVlad(form):
         qsf = form[qsfname]
         if qsf.filename:
             args.append("-q")
-            args.append(qsf.value)
+            args.append(qs.value.decode('utf-8')
         elif qs.value:
             args.append("-q")
             args.append(qs.value)
