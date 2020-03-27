@@ -83,7 +83,7 @@ def runVlad(form):
         qsf = form[qsfname]
         if qsf.filename:
             args.append("-q")
-            args.append(qs.value.decode('utf-8'))
+            args.append(qsf.value.decode('utf-8'))
         elif qs.value:
             args.append("-q")
             args.append(qs.value)
