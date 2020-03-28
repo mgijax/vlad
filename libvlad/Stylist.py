@@ -398,14 +398,16 @@ class Stylist(object):
             self.setEdgeAttrs(p, c, d)
 
         if self.vlad.options.gCull:
-            culled = NodeCuller('minpval').go(dag=self.dotdag, allPaths=True)
-            NodeCutter(culled).go(dag=self.dotdag, allPaths=True)
-            NodeCollapser().go(dag=self.dotdag)
+            NodeCutter(self.labelTerms).go(dag=self.dotdag, allPaths=True)
+            #culled = NodeCuller('minpval').go(dag=self.dotdag, allPaths=True)
+            #NodeCutter(culled).go(dag=self.dotdag, allPaths=True)
+            #NodeCollapser().go(dag=self.dotdag)
 
         self.createSubgraphs()
         self.assignSubgraphs()
         return self.dotdag
 
+'''
 # A traversal that marks each node to be culled with a flag.
 # Return value is the set of marked nodes. (Doesn't actually change the dag)
 class NodeCuller(DAG.Traversal):
@@ -456,6 +458,9 @@ class NodeCutter(DAG.Traversal):
             if d == self.edgeLabel and dag.hasEdge(p,c):
                 dag.removeEdge(p,c)
 
+#
+# Traversal that collapses all interior nodes.
+#
 class NodeCollapser(DAG.Traversal):
   def __init__(self, width = 0.1, height = 0.1, label = ''):
     self.width = width
@@ -467,3 +472,60 @@ class NodeCollapser(DAG.Traversal):
       dag.setObjAttr(node, 'width', self.width)
       dag.setObjAttr(node, 'height', self.height)
       dag.setObjAttr(node, 'label', self.label)
+'''
+
+#
+# A traversal that culls notes from the graph
+#
+class NodeCutter(DAG.Traversal):
+    def __init__(self, selected):
+        self.nodesToCut = None
+        self.edgesToAdd = None
+        self.selected = selected
+
+    def getResults(self):
+        return self.dag
+
+    def beforeTraverse(self, dag):
+        self.nodesToCut = set()
+        self.edgesToAdd = set()
+        # compute the closure over selected nodes (i.e., for every node, the
+        # set of selected descendants)
+        selected = self.selected
+        ns = lambda n:n in selected
+        self.closure = DAG.Closure(nodeSelector=ns).go(dag=dag)
+
+    # keep only f node is selected or is an interior "meeting point".
+    def decider(self, dag, node, path):
+        if node in self.selected:
+            return False
+
+        sz = len(self.closure[node])
+        for c in dag.iterChildren(node):
+            if sz == len(self.closure[c]):
+                return True
+
+        return False
+
+    def beforeNode(self, dag, node, path):
+        if self.decider(dag, node, path):
+            self.nodesToCut.add(node)
+
+    def afterEdge(self, dag, parent, child, data, path):
+        if child not in self.nodesToCut and parent in self.nodesToCut:
+            for (i, n) in enumerate(reversed(path)):
+                if i%2==0 and not n in self.nodesToCut:
+                    self.edgesToAdd.add( (n, child, "...") )
+                    break;
+
+    def afterTraverse(self, dag):
+        for n in self.nodesToCut:
+            dag.removeNode(n)
+        for p,c,d in self.edgesToAdd:
+            dag.addEdge(p,c,d)
+        # Remove redundant edges added by previous step
+        redges = DAG.RedundantEdgeFinder().go(dag=dag, allPaths=True)
+        for p,c,d in redges:
+            if d == "..." and dag.hasEdge(p,c):
+                dag.removeEdge(p,c)
+
