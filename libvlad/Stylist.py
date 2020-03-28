@@ -46,27 +46,27 @@ class Stylist(object):
             self.dotdag.setObjAttr(n, 'shape', "box")
             self.dotdag.setObjAttr(n, 'width', 1.5)
             return
-
-        if self.doPercents:
-            self.dotdag.setObjAttr(n, 'shape', 'box')
-            self.dotdag.setObjAttr(n, 'width', 1.0)
-            self.dotdag.setObjAttr(n, 'height', 1.0)
-            return
-
         rslts = self.term2results[self.namespace].get(n,[])
-        score = 0.0
+        maxer = 0.0 # max e ratio
+        minp  = 1.0 # min p val
         for r in rslts:
-            if self.doPercents:
-                score = max(score, r.pval)
-            else:
-                score = max(score, r.eRatio)
+            maxer = max(maxer, r.eRatio)
+            minp  = min(minp,  r.pval)
         maxdiameter = 1.5 # inches
         mindiameter = 0.1
-        self.dotdag.setObjAttr(n, 'shape', 'box')
-        maxarea = maxdiameter**2
-        minarea = mindiameter**2
-        area = minarea + score*(maxarea-minarea)
-        diameter = math.sqrt(area)
+        #if self.nqsets <= 2:
+        if False:
+            self.dotdag.setObjAttr(n, 'shape', 'circle')
+            maxarea = math.pi * maxdiameter**2 / 4
+            minarea = math.pi * mindiameter**2 / 4
+            area = minarea + maxer*(maxarea-minarea)
+            diameter = 2*math.sqrt(area/math.pi)
+        else:
+            self.dotdag.setObjAttr(n, 'shape', 'box')
+            maxarea = maxdiameter**2
+            minarea = mindiameter**2
+            area = minarea + maxer*(maxarea-minarea)
+            diameter = math.sqrt(area)
         self.dotdag.setObjAttr(n, 'width', diameter)
         self.dotdag.setObjAttr(n, 'height', diameter)
 
@@ -125,46 +125,31 @@ class Stylist(object):
         for r in rslts:
             qsc = self.qsid2color[r.qsid]
             qsc = ' '.join(['%s'%x for x in qsc])
-            if self.doPercents:
-                l = r.pval
-            else:
-                l = r.e
-            segs.append( [qsc, l] )
+            segs.append( [qsc, r.e] )
         #
-        if not n.is_nsroot and len(segs) > 0 and self.nqsets > 1:
+        if len(segs) > 0 and self.nqsets > 1:
             if cbarIsNode:
                 aspect = 1.0
                 tlen = 0.92*pwidth
             else:
                 aspect = 0.15
                 tlen = 0.85*pwidth
-            if self.doPercents:
-                clrbar = self.mkBarChart(tlen, aspect*tlen, segs)
-            else:
-                clrbar = self.mkColorBar(segs, totallength=tlen, aspect=aspect)
+            clrbar = self.mkColorBar(segs, totallength=tlen, aspect=aspect)
 
         # stats line
         stats = ''
-        if dolabel and rslts and not n.is_nsroot:
+        if dolabel and not n.is_nsroot:
             K=0 # K = #genes annotated to this node in the database
             if self.nqsets == 1:
                 # for a single query set, just display the stats as two lines of text: p, then k and K.
-                r = rslts[0]
-                if self.doPercents:
-                    stats = '%d%%<BR/>k=%d, K=%d' % (round(100*r.pval), r.k, r.K)
-                else:
-                    stats = 'p=%0.1E<BR/>k=%d, K=%d' % (r.pval, r.k, r.K)
+                stats = 'p=%0.1E<BR/>k=%d, K=%d' % (r.pval, r.k, r.K)
             elif self.nqsets > 1 :
                 # for multiple query sets, display a table of stats, and include a color swatch
                 for r in rslts:
                     # add a row for this result. show p and k
                     qsc = ' '.join(['%s'%x for x in self.qsid2color[r.qsid]])
-                    if self.doPercents:
-                      stats += '<TR><TD BGCOLOR="%s" FIXEDSIZE="true" WIDTH="0.5"></TD><TD ALIGN="LEFT">%d%%, k=%d</TD></TR>' \
-                        % (qsc, round(100*r.pval), r.k)
-                    else:
-                      stats += '<TR><TD BGCOLOR="%s" FIXEDSIZE="true" WIDTH="0.5"></TD><TD ALIGN="LEFT">p=%0.0E, k=%d</TD></TR>' \
-                        % (qsc, r.pval, r.k)
+                    stats += '<TR><TD BGCOLOR="%s" FIXEDSIZE="true" WIDTH="0.5"></TD><TD ALIGN="LEFT">p=%0.0E, k=%d</TD></TR>' \
+                      % (qsc, r.pval, r.k)
                     K = r.K # all results for this node have same K
                 if stats:
                     # show K
@@ -306,37 +291,9 @@ class Stylist(object):
         # c'est finis
         return ''.join(clrbar)
 
-    def mkBarChart(self, width, height, colors):
-        clrbar = [
-            ('<TABLE BORDER="1" CELLPADDING="0" CELLSPACING="0" CELLBORDER="0" FIXEDSIZE="true" ' + \
-            '  WIDTH="%s" HEIGHT="%s" >') % (width, height)
-        ]
-
-        # calculate width of each bar
-        nbars = len(colors)
-        if nbars == 0:
-          return ''
-        spacerWidth = 2
-        barThickness = (height - 2 - (spacerWidth * (nbars - 1))) / nbars
-
-        # add each line seg
-        for i, (color,pct) in enumerate(colors):
-            if i > 0:
-                #add spacer
-                cell = '<TR><TD ALIGN="left" FIXEDSIZE="true" WIDTH="1" HEIGHT="%s"></TD></TR>' % spacerWidth
-                clrbar.append(cell)
-            # add bar
-            cell = '<TR><TD ALIGN="left" FIXEDSIZE="true" WIDTH="%s" HEIGHT="%s" BGCOLOR="%s"></TD></TR>' \
-                 % (pct*width, barThickness, color)
-            clrbar.append(cell)
-        clrbar.append('</TABLE>')
-        # c'est finis
-        return ''.join(clrbar)
-
     def go(self, ns, dag, vlad, labelTerms):
         self.namespace = ns
         self.vlad = vlad
-        self.doPercents = (vlad.options.analysis == "percentage")
         self.nqsets = len(self.vlad.qsets)
         self.globalMinP = 1.0
         self.doConfig(self.vlad.cfgParser)
@@ -345,106 +302,101 @@ class Stylist(object):
         self.results = vlad.results[ns]
         self.term2results = vlad.term2results
 
-        # find the global minimum p-val, then calc the global maximum e-val
         minp = 1.0
-        maxp = 0.0
         for t in labelTerms:
             rs = self.term2results[ns].get(t,None)
             if rs:
                 minp = min(minp, rs[0].minpval)
-                maxp = max(maxp, rs[0].maxpval)
         self.globalMinP = minp
-        self.globalMaxP = maxp
-        if not self.doPercents:
-            self.globalMaxE = -math.log10(self.globalMinP)
-        else:
-            self.globalMaxE = 0.0
+        self.globalMaxE = -math.log10(self.globalMinP)
 
-        # create the DOT dag that we will manipulate from the base dag
         self.dag = dag
         self.dotdag = GVT.DOTDAG(self.dag,ns)
 
 
-        # generate the graph title box
-        lbl = '<<TABLE COLOR="black" BGCOLOR="white"><TR><TD COLSPAN="2" BGCOLOR="%s"><FONT COLOR="%s">%s (N=%d)</FONT></TD></TR>' \
-            % (self.nodeFillColor, self.nodeFontColor, ns, self.results[0].N)
-        for i,qsn in enumerate(self.vlad.options.qsnames):
-            qsize = self.results[i].n
+        lbl = '<<TABLE COLOR="black" BGCOLOR="white"><TR><TD COLSPAN="2" BGCOLOR="%s"><FONT COLOR="%s">%s</FONT></TD></TR>' \
+            % (self.nodeFillColor, self.nodeFontColor, ns)
+        for qsn in self.vlad.options.qsnames:
             qclr = self.qsid2color[qsn]
             if self.nqsets > 1:
-                lbl += '<TR><TD BGCOLOR="%s %s %s"> </TD><TD BORDER="0">%s (n=%d)</TD></TR>' \
-                    % (qclr[0],qclr[1],qclr[2], qsn, qsize)
+                lbl += '<TR><TD BGCOLOR="%s %s %s"> </TD><TD BORDER="0">%s</TD></TR>' \
+                    % (qclr[0],qclr[1],qclr[2], qsn)
             else:
-                lbl += '<TR><TD BORDER="0">%s (n=%d)</TD></TR>' % (qsn, qsize)
+                lbl += '<TR><TD BORDER="0">%s</TD></TR>' % qsn
+        '''
+        if self.nqsets == 2:
+            c1 = self.qsid2color[ self.vlad.options.qsnames[0] ]
+            c2 = self.qsid2color[ self.vlad.options.qsnames[1] ]
+            c1c2 = colors.interpolate(c1, c2, 5)
+            c1c2 = map(lambda x:'<TD BGCOLOR="%s %s %s"> </TD>'%(x[0], x[1], x[2]), c1c2)
+            c1c2s = "".join(c1c2)
+            lbl += '<TR><TD COLSPAN="2"><TABLE BORDER="0"><TR>%s</TR></TABLE></TD></TR>'%c1c2s
+        '''
 
         lbl += '</TABLE>>'
         self.dotdag.setSGAttr('graph','label',lbl)
 
-        # 
         for r in self.results:
-            if not self.doPercents:
-                if self.globalMaxE == 0:
-                    r.eRatio = 1.0 / len(self.results)
-                else:
-                    r.eRatio = r.e / self.globalMaxE
+            if self.globalMaxE == 0:
+                r.eRatio = 1.0 / len(self.results)
+            else:
+                r.eRatio = r.e / self.globalMaxE
             self.dotdag.setObjAttr(r.term, 'minpval', r.minpval)
-            self.dotdag.setObjAttr(r.term, 'maxpval', r.maxpval)
             self.dotdag.setObjAttr(r.term, 'k', r.k)
             self.dotdag.setObjAttr(r.term, 'K', r.K)
-
         for n in self.dotdag.iterNodes():
             self.setNodeAttrs(n)
         for p,c,d in self.dotdag.iterEdges():
             self.setEdgeAttrs(p, c, d)
 
         if self.vlad.options.gCull:
-            culled = NodeCuller('minpval').go(dag=self.dotdag, allPaths=True)
-            NodeCutter(culled).go(dag=self.dotdag, allPaths=True)
-            NodeCollapser().go(dag=self.dotdag)
+            NodeCutter(self.labelTerms).go(dag=self.dotdag, allPaths=True)
 
         self.createSubgraphs()
         self.assignSubgraphs()
         return self.dotdag
 
-# A traversal that marks each node to be culled with a flag.
-# Return value is the set of marked nodes. (Doesn't actually change the dag)
-class NodeCuller(DAG.Traversal):
-    def __init__(self, scoreAttr):
-        self.scoreAttr = scoreAttr
-        self.markedNodes = set()
-    def beforeEdge(self, dag, parent, child, data, path):
-        pscore = dag.getObjAttr(parent, self.scoreAttr)
-        cscore = dag.getObjAttr(child, self.scoreAttr)
-        if cscore >= pscore and not parent.is_nsroot:
-            self.markedNodes.add(parent)
-    def getResults(self):
-        return self.markedNodes
-
-# A traversal that prunes nodes and reattaches edges.
-# Init with the set of nodes to cut and the string label for replacement edges.
 class NodeCutter(DAG.Traversal):
-    def __init__(self, nodesToCut, edgeLabel="..."):
-        self.nodesToCut = nodesToCut
+    def __init__(self, selected):
+        self.nodesToCut = None
         self.edgesToAdd = None
-        self.edgeLabel = edgeLabel
+        self.selected = selected
 
     def getResults(self):
         return self.dag
 
     def beforeTraverse(self, dag):
+        self.nodesToCut = set()
         self.edgesToAdd = set()
+        # compute the closure over selected nodes (i.e., for every node, the
+        # set of selected descendants)
+        selected = self.selected
+        ns = lambda n:n in selected
+        self.closure = DAG.Closure(nodeSelector=ns).go(dag=dag)
 
-    # If parent node is to be cut, but my child isn't, need to
-    # reconnect child to nearest unpruned (retained) ancestor node in the
-    # current path.
-    def beforeEdge(self, dag, parent, child, data, path):
+    # keep only f node is selected or is an interior "meeting point".
+    def decider(self, dag, node, path):
+        if node in self.selected:
+            return False
+
+        sz = len(self.closure[node])
+        for c in dag.iterChildren(node):
+            if sz == len(self.closure[c]):
+                return True
+
+        return False
+
+    def beforeNode(self, dag, node, path):
+        if self.decider(dag, node, path):
+            self.nodesToCut.add(node)
+
+    def afterEdge(self, dag, parent, child, data, path):
         if child not in self.nodesToCut and parent in self.nodesToCut:
             for (i, n) in enumerate(reversed(path)):
                 if i%2==0 and not n in self.nodesToCut:
-                    self.edgesToAdd.add( (n, child, self.edgeLabel) )
+                    self.edgesToAdd.add( (n, child, "...") )
                     break;
 
-    # After traversal is done, process the results. Remove the nodes. Add the edges.
     def afterTraverse(self, dag):
         for n in self.nodesToCut:
             dag.removeNode(n)
@@ -453,17 +405,6 @@ class NodeCutter(DAG.Traversal):
         # Remove redundant edges added by previous step
         redges = DAG.RedundantEdgeFinder().go(dag=dag, allPaths=True)
         for p,c,d in redges:
-            if d == self.edgeLabel and dag.hasEdge(p,c):
+            if d == "..." and dag.hasEdge(p,c):
                 dag.removeEdge(p,c)
 
-class NodeCollapser(DAG.Traversal):
-  def __init__(self, width = 0.1, height = 0.1, label = ''):
-    self.width = width
-    self.height = height
-    self.label = label
-
-  def beforeNode(self, dag, node, path):
-    if dag.isInteriorNode(node):
-      dag.setObjAttr(node, 'width', self.width)
-      dag.setObjAttr(node, 'height', self.height)
-      dag.setObjAttr(node, 'label', self.label)
