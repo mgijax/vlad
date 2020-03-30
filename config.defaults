@@ -51,6 +51,12 @@ outputDirUrl:	%(vladUrl)s/output/
 # name of vlad logo file
 logofile:	vlad_logo.gif
 
+# bash executable
+bash: /usr/bin/bash
+
+# Python executable
+python: /opt/python3.7/bin/python3
+
 # name of vlad CGI script
 scriptfile:	vlad.cgi
 
