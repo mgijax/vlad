@@ -145,6 +145,15 @@ class VladInstaller(object):
         jsString = ''.join(parts)
         return jsString
             
+    def writeCgi (self) :
+        bash = self.dstConfig.get('VLAD', 'bash' )
+        python = self.dstConfig.get('VLAD', 'python')
+        cgiScriptFile = self.dstConfig.get('VLAD', 'scriptfile')
+        cgiFile = os.path.join(self.dstCgiDir, cgiScriptFile)
+        with open(cgiFile, 'w') as fd:
+            fd.write('#!%s\n%s vlad.py\n' % (bash, python))
+        os.chmod(cgiFile, 0o777)
+
     def main(self, argv):
         cfgfile = None
         installSamples = False
@@ -205,6 +214,7 @@ class VladInstaller(object):
         # copy the static content files. Then read the index file
         # and substitute the correct cgi URL.
         self.cp(os.path.join(self.srcStaticDir, '*'), self.dstDir, recursive=True)
+        self.writeCgi()
         self.cp(os.path.join(self.srcStaticDir, '.htaccess'), self.dstDir)
 
         fd = open(os.path.join(self.srcStaticDir, 'index.html'), 'r')
