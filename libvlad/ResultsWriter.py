@@ -669,6 +669,7 @@ class ExcelWriter(ResultsWriter):
 
     def writeExcelQuerySets(self, sheet, row, col):
         for i,qs in enumerate(self.vlad.qsets):
+            sheet.set_column( col, col, 16 )
             sheet.merge_range( row, col, row, col+1, self.vlad.options.qsnames[i], self.xlsHeadingStyle )
             dbobjs = self.vlad.annotations.getDbObjects(qs)
             dbobjs.sort(key=lambda x:x.symbol)
@@ -699,6 +700,7 @@ class ExcelWriter(ResultsWriter):
             sheet.write( i+1, 0, lbl )
             sheet.write( i+1, 1, val )
 
+        # links to each result page
         nss = list(self.results.keys())
         nss.sort()
         i += 2
@@ -706,13 +708,13 @@ class ExcelWriter(ResultsWriter):
         for ns in nss:
             self.writeWorksheetLink(ns, "#%s!A1"%ns, sheet, i, 1)
             i+=1
+        # column names and descriptions
         if self.columnLegend:
             i += 2
             sheet.merge_range( i, 0, i, 1, "Column Descriptions", self.xlsHeadingStyle )
             for j, (lbl,val) in enumerate(self.columnLegend):
                 sheet.write( j+i+1, 0, lbl, self.xlsBoldStyle )
                 sheet.write( j+i+1, 1, val )
-        #
         # List all the query sets
         self.writeExcelQuerySets(sheet, 0, 3)
         # write results page for each namespace

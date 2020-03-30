@@ -156,7 +156,6 @@ class VladInstaller(object):
         self.srcDir = os.path.abspath(os.path.dirname(__file__))
         self.srcLibDir = os.path.join(self.srcDir, "libvlad")
         self.srcStaticDir = os.path.join(self.srcDir, "www")
-        #self.srcPyExcelDir = os.path.join(self.srcDir, "pyExcelerator", "pyExcelerator")
 
         self.dstConfigFile = cfgfile
         self.dstConfig = self.readConfig(self.dstConfigFile)
@@ -186,10 +185,6 @@ class VladInstaller(object):
         if not os.access( self.dstOutputDir, os.F_OK|os.R_OK|os.W_OK|os.X_OK ):
             os.chmod(self.dstOutputDir, 0o777)
 
-        # copy Vlad cgi
-        self.cp(os.path.join(self.srcDir, 'vlad.cgi'), self.dstCgiDir)
-        self.cp(os.path.join(self.srcDir, 'vlad.py'), self.dstCgiDir)
-
         # copy config file to installation dir
         dcf = os.path.join(self.dstCgiDir,"config.cfg")
         if not os.path.exists(dcf) \
@@ -197,10 +192,7 @@ class VladInstaller(object):
             self.cp( self.dstConfigFile, dcf )
 
         # copy the .py files from source lib dir to dest lib dir
-        self.cp(os.path.join(self.srcLibDir, '*.py'), self.dstLibDir)
-
-        # copy pyExcelerator library
-        #self.cp(self.srcPyExcelDir, self.dstLibDir, recursive=True)
+        self.cp(os.path.join(self.srcLibDir, '*'), self.dstLibDir, recursive=True)
 
         # copy sample data files
         '''
