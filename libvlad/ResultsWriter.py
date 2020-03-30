@@ -28,7 +28,7 @@ from . import Stylist
 from . import colors
 
 # 3rd party libs
-#from . import pyExcelerator
+from . import xlsxwriter
 
 #-------------------------------------------------------------------
 COMMA   =       ','
@@ -618,9 +618,8 @@ __addImpl__(TextWriter)
 
 #-------------------------------------------------------------------
 
-'''
 class ExcelWriter(ResultsWriter):
-    extensions = ['xls']
+    extensions = ['xls','xlsx']
 
     def getWorksheetRowStyles(self):
         return self.checkRow([
@@ -644,10 +643,7 @@ class ExcelWriter(ResultsWriter):
             ])
 
     def writeWorksheetLink(self, text, url, sheet, row, col):
-        if text is not None:
-            sheet.write(row, col, text, self.xlsLinkStyle)
-        if url is not None:
-            sheet.set_link(row, col, url)
+        sheet.write_url(row, col, url, self.xlsLinkStyle, text)
 
     def writeWorksheetGenelist(self, dbobjs, sheet, row, col):
         for i, obj in enumerate(dbobjs):
@@ -673,46 +669,34 @@ class ExcelWriter(ResultsWriter):
 
     def writeExcelQuerySets(self, sheet, row, col):
         for i,qs in enumerate(self.vlad.qsets):
-            sheet.write_merge( row, row, col, col+1, self.vlad.options.qsnames[i], self.xlsHeadingStyle )
+            sheet.merge_range( row, col, row, col+1, self.vlad.options.qsnames[i], self.xlsHeadingStyle )
             dbobjs = self.vlad.annotations.getDbObjects(qs)
             dbobjs.sort(key=lambda x:x.symbol)
             self.writeWorksheetGenelist(dbobjs, sheet, row+1, col)
             col += 3
 
     def _writeFile_(self):
-        fp = self.openOutputFile(self.fname)
-        wb = pyExcelerator.Workbook()
+        self.filesWritten.append(self.fname)
+        wb = xlsxwriter.Workbook(self.fname)
 
-        # define the rendering styles we'll use
-        self.xlsDefaultStyle = pyExcelerator.XFStyle()
-
-        self.xlsBoldStyle = pyExcelerator.XFStyle()
-        self.xlsBoldStyle.font = pyExcelerator.Font()
-        self.xlsBoldStyle.font.bold = True
-
-        self.xlsHeadingStyle = pyExcelerator.XFStyle()
-        self.xlsHeadingStyle.font = self.xlsBoldStyle.font
-        self.xlsHeadingStyle.alignment = pyExcelerator.Alignment()
-        self.xlsHeadingStyle.alignment.horz = pyExcelerator.Alignment.HORZ_CENTER
-
-        self.xlsLinkStyle = pyExcelerator.XFStyle()
-        self.xlsLinkStyle.font = pyExcelerator.Font()
-        self.xlsLinkStyle.font.colour_index = 4
-
-        self.xlsPercentStyle = pyExcelerator.XFStyle()
-        self.xlsPercentStyle.num_format_str = "0.00%"
-
-        self.xlsSciStyle = pyExcelerator.XFStyle()
-        self.xlsSciStyle.num_format_str = "0.00E+00"
+        # define styles
+        self.xlsDefaultStyle = wb.add_format({})
+        self.xlsBoldStyle = wb.add_format({'bold': True})
+        self.xlsHeadingStyle = wb.add_format({'bold': True, 'align': 'center'})
+        self.xlsLinkStyle = wb.add_format({'font_color' : 'blue' })
+        self.xlsPercentStyle = wb.add_format({'num_format' : '0.00%'})
+        self.xlsSciStyle = wb.add_format({'num_format' : '0.00E+00'})
 
         # write summary page
-        sheet = wb.add_sheet("Summary")
+        sheet = wb.add_worksheet("Summary")
+        # run name
         a = self.vlad.options.runname
-        sheet.write_merge( 0, 0, 0, 1, "%s"%a, self.xlsHeadingStyle )
-        sheet.col(0).width *= 2
-        sheet.col(1).width *= 2
+        sheet.merge_range(0, 0, 0, 1, "%s"%a, self.xlsHeadingStyle )
+        sheet.set_column(0, 0, 16)
+        sheet.set_column(1, 1, 64)
+        # run summary attribute/values
         for (i, (lbl,val)) in enumerate(self.summary):
-            sheet.write( i+1, 0, lbl, self.xlsBoldStyle )
+            sheet.write( i+1, 0, lbl )
             sheet.write( i+1, 1, val )
 
         nss = list(self.results.keys())
@@ -724,7 +708,7 @@ class ExcelWriter(ResultsWriter):
             i+=1
         if self.columnLegend:
             i += 2
-            sheet.write_merge( i, i, 0, 1, "Column Descriptions", self.xlsHeadingStyle )
+            sheet.merge_range( i, 0, i, 1, "Column Descriptions", self.xlsHeadingStyle )
             for j, (lbl,val) in enumerate(self.columnLegend):
                 sheet.write( j+i+1, 0, lbl, self.xlsBoldStyle )
                 sheet.write( j+i+1, 1, val )
@@ -735,26 +719,23 @@ class ExcelWriter(ResultsWriter):
         rowstyles = self.getWorksheetRowStyles()
         for ns in nss:
             # add a sheet for each namespace
-            sheet = wb.add_sheet(ns)
+            sheet = wb.add_worksheet(ns)
             nsresults = self.results[ns]
             hlabels = self.getHeaderLabels()
             self.writeWorksheetRow( hlabels, sheet, 0, 0, len(hlabels)*[self.xlsHeadingStyle] )
-            sheet.col(1).width *= 3
+            sheet.set_column(1, 1, 28)
             for (i,r) in enumerate(nsresults):
                 url=None
                 if url:
                     rowstyles[-1] = self.xlsLinkStyle
                 else:
                     rowstyles[-1] = self.xlsDefaultStyle
-                lastcol = self.writeWorksheetRow(self.result2list(r,'xls'), sheet, i+1, 0, rowstyles)
+                lastcol = self.writeWorksheetRow(self.result2list(r,'xlsx'), sheet, i+1, 0, rowstyles)
                 if url:
                     self.writeWorksheetLink( None, url, sheet, i+1, lastcol )
-
-        wb.save(fp)
-        self.closeFile(fp)
+        wb.close()
 
 __addImpl__(ExcelWriter)
-'''
 
 #-------------------------------------------------------------------
 

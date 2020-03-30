@@ -517,7 +517,7 @@ class VladCGI(Vlad):
             dest="tExcel", 
             default=False,
             action="store_true",
-            help="Generate spreadsheet (.xls) output.")
+            help="Generate spreadsheet (.xlsx) output.")
 
         self.optParser.add_option(
             "--tHtml", 
@@ -787,18 +787,12 @@ class VladCGI(Vlad):
         tw = ResultsWriter.TextWriter(self)
         tw.write(os.path.join(self.mydir,"results.tsv"), self.results, self.summary)
 
-    '''
     def generateExcel(self):
         xw = ResultsWriter.ExcelWriter(self)
         try:
-            # KNOWN BUG: If a query set is "too large", generating the excel will
-            # throw an error. (The cell that lists the genes for a term exceeds
-            # some threshold internal to the pyExcelerator library.)
-            # For now, just catch the error and continue on.
-            xw.write(os.path.join(self.mydir,"results.xls"), self.results, self.summary)
+            xw.write(os.path.join(self.mydir,"results.xlsx"), self.results, self.summary)
         except:
             self.addMessage("Error while generating spreadsheet. Excel file not written.","error")
-    '''
 
     def generateHtml(self, images, imgurlroot):
         # generate the html file
@@ -854,10 +848,8 @@ class VladCGI(Vlad):
         images = {}
         if self.options.gEnable:
             images = self.generateGraphicalOutput()
-        '''
         if self.options.tExcel:
             self.generateExcel()
-        '''
         if self.options.tText:
             self.generateText()
         self.generateHtml(images, self.myauxurl)
