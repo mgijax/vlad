@@ -14,7 +14,7 @@ def removeTempFile(file):
 
 def writeTempFile(contents):
     fd,name = tempfile.mkstemp()
-    fp = os.fdopen(fd, 'w')
+    fp = os.fdopen(fd, 'wb')
     fp.write(contents)
     fp.close()
     atexit.register( removeTempFile, name )
