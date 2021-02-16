@@ -71,7 +71,7 @@ class Stylist(object):
         self.dotdag.setObjAttr(n, 'height', diameter)
 
     def typesetLabel(self, n, minlen=8, maxlen=20, NL='<BR/>'):
-        tokens = n.name.split()
+        tokens = n.name.replace('<', '&lt;').replace('>', '&gt;').split()
         label = n.id + NL
         cllen = 0
         lasti = len(tokens)-1
