@@ -331,17 +331,11 @@ class Vlad(object):
 
     def summarize(self):
         #
-        odate = self.ontology.getAttribute("date")
-        try:
-            odate = time.asctime(time.strptime(odate, '%d:%m:%Y %H:%M'))
-        except ValueError:
-            pass
+        odate = self.ontology.getAttribute("data-version")
         #
-        adate = self.annotations.getAttribute("Submission Date")
-        try:
-            adate = time.asctime(time.strptime(adate, '%m/%d/%Y'))
-        except ValueError:
-            pass
+        adate = self.annotations.getAttribute("Submission Date", dflt="?")
+        if adate == "?":
+            adate = self.annotations.getAttribute("date-generated", dflt="?")
         #
         excluded = ','.join(self.options.exclude)
         if excluded == '':
