@@ -369,7 +369,7 @@ class Stylist(object):
         lbl = '<<TABLE COLOR="black" BGCOLOR="white"><TR><TD COLSPAN="2" BGCOLOR="%s"><FONT COLOR="%s">%s (N=%d)</FONT></TD></TR>' \
             % (self.nodeFillColor, self.nodeFontColor, ns, self.results[0].N)
         for i,qsn in enumerate(self.vlad.options.qsnames):
-            qsize = self.results[i].n
+            qsize = len(self.vlad.qsets[i])
             qclr = self.qsid2color[qsn]
             if self.nqsets > 1:
                 lbl += '<TR><TD BGCOLOR="%s %s %s"> </TD><TD BORDER="0">%s (n=%d)</TD></TR>' \
