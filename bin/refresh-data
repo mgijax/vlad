@@ -1,0 +1,57 @@
+#!/usr/bin/bash -v
+#
+# refresh
+#
+# Runs the mirror program to get any updated
+# annotation files from the GO web site,
+# then uncompresses them. When uncompressing,
+# we have to preserve the .gz files. Otherwise,
+# mirror will download every time.
+#
+
+cd `dirname $0`
+TOP=`pwd`
+
+# if no Configuration file, bail out
+
+if [ ! -f "${TOP}/../Configuration" ]; then
+        echo "Missing Configuration file"
+        exit 1
+fi
+
+# source the Configuration file
+
+. "${TOP}/../Configuration"
+
+cd ${VLAD_DATA}
+
+# Where to get annotation files. The GO ftp site.
+export GOURL=http://purl.obolibrary.org/obo/go/go-basic.obo
+export HUMANGAF=http://release.geneontology.org/2021-02-01/annotations/goa_human.gaf.gz
+export MGIGAF=http://www.informatics.jax.org/downloads/reports/gene_association.mgi.gz
+
+rm -f LOG
+
+#---------------------
+
+# mirror the GO
+wget -a LOG --server-response --timestamping $GOURL
+mv go-basic.obo gene_ontology.obo
+
+# mirror the annotation files
+wget -a LOG --server-response --timestamping $HUMANGAF
+wget -a LOG --server-response --timestamping $MGIGAF
+
+#---------------------
+# uncompress
+#
+gunzip -c goa_human.gaf.gz > gene_association.goa_human
+gunzip -c gene_association.mgi.gz > gene_association.mgi
+
+# -----------------------------------------------------------------
+# -----------------------------------------------------------------
+
+/opt/python3.7/bin/python3 ${VLAD}/bin/dumpMPAnnotations.py -gene > MPGeneAnnots.txt
+
+wget -a LOG -S -N http://www.informatics.jax.org/downloads/reports/MPheno_OBO.ontology
+mv MPheno_OBO.ontology mammalian_phenotype.obo

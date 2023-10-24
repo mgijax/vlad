@@ -745,7 +745,7 @@ CSSSTYLE= '''
 <style type="text/css">       
 
     body {        
-        background-color: MediumAquaMarine;
+        background-color: #DFEFFF;
     }
 
     .zdark {

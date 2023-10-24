@@ -1,0 +1,17 @@
+if [ "${MGICONFIG}" = "" ]
+then
+    MGICONFIG=/usr/local/mgi/live/mgiconfig
+    export MGICONFIG
+fi
+
+. ${MGICONFIG}/master.config.sh
+
+export VLAD=${MGI_LIVE}/vlad
+export VLAD_URL=/vlad
+export VLAD_BUILD=${VLAD}/build
+export VLAD_DATA_ROOT=${DATALOADSOUTPUT}/mgi/vlad_data
+export VLAD_DATA=${VLAD_DATA_ROOT}/data
+export VLAD_OUTPUT=${VLAD_DATA_ROOT}/output
+export VLAD_TMP=${VLAD_DATA_ROOT}/tmp
+
+export PYTHONPATH=.:PYTHONPATH=${VLAD}/libvlad:${PYTHONPATH}

@@ -303,7 +303,7 @@ window.onload = function(){
 <style type="text/css">
 
 body {
-    background-color: MediumAquaMarine;
+    background-color: #DFEFFF;
 }
 .inputcontrol {
     vertical-align: top;
@@ -351,7 +351,7 @@ body {
 }
 
 .divider {
-    background-color : #333;
+    background-color : #025;
     color : white;
     font-family : sans-serif;
 }
@@ -398,12 +398,23 @@ body {
 .debug-message {
 }
 
+#mgilogo {
+  position: relative;
+  top: 20px;
+}
+
 </style>
 
 </head>
 <body>
 
-<h1><img src="vlad_logo.gif" align="middle" /> Vlad - Gene List Analysis and Visualization</h1>
+<h1>
+   <img src="vlad_logo.gif" align="middle" />
+   Vlad - Gene List Analysis and Visualization
+   <a href="https://www.informatics.jax.org/" style="background-color: transparent">
+       <img id="mgilogo" src="https://www.informatics.jax.org/webshare/images/mgi_logo.gif" border="0"></img>
+   </a>
+ </h1>
 <span style="font-size : 10;">Version %(vladVersion)s</span>
 <form action="%(vladCgiUrl)s" method="post" 
       enctype="multipart/form-data" target="hiddeniframe" 

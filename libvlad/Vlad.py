@@ -22,13 +22,17 @@ from . import colors
 
 #-------------------------------------------------------------------
 
-VERSION = "1.8.0"
+VERSION = "1.9.0"
 
 #-------------------------------------------------------------------
 
 class Vlad(object):
     def __init__(self):
-        self.cfgParser = configparser.ConfigParser()
+        defs = {}
+        for n,v in os.environ.items():
+            if n.startswith("VLAD"):
+                defs[n] = v
+        self.cfgParser = configparser.ConfigParser(defaults=defs)
         self.VERSION = VERSION
         self.optParser = None
         self.options = None
@@ -167,7 +171,7 @@ class Vlad(object):
             self.optParser.error("No annotation file specified.")
         if len(self.options.qsets) == 0:
             self.optParser.error("No query set(s) specified. At least one -q or -f is required.")
-        self.options.staticdir = self.options.vladdir
+        self.options.staticdir = self.options.vladbuilddir
 
     def readConfig(self, files):
         self.cfgParser.read(files)
@@ -826,6 +830,8 @@ class VladCGI(Vlad):
         # config setting.
         if self.options.cleanTempFiles:
             self.cleanTempFiles()
+            if self.options.maxage < 0:
+                return
 
         # create my own temp directory
         prefix = "VLAD.%s." % re.sub( "[^-a-zA-Z0-9_]","_",self.options.runname)

@@ -9,11 +9,14 @@ import libvlad
 import tempfile
 import atexit
 
+TMPDIR=os.environ.get("VLAD_TMP", "/tmp")
+
 def removeTempFile(file):
     os.remove(file)
 
 def writeTempFile(contents):
-    fd,name = tempfile.mkstemp()
+    print("temp dir = ", TMPDIR)
+    fd,name = tempfile.mkstemp(dir=TMPDIR)
     fp = os.fdopen(fd, 'wb')
     fp.write(contents)
     fp.close()
