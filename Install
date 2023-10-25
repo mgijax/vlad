@@ -19,6 +19,8 @@ fi
 
 . "${TOP}/Configuration"
 
+rm -fr ${VLAD_BUILD}
+
 mkdir -p $VLAD_DATA
 mkdir -p $VLAD_OUTPUT
 chmod o+w $VLAD_OUTPUT
@@ -28,4 +30,5 @@ chmod o+w $VLAD_TMP
 $PYTHON ${VLAD}/bin/installer.py ${VLAD}/vlad.cfg
 
 ln -s ${VLAD_OUTPUT} ${VLAD_BUILD}/output
+
 echo "Options -Indexes" > ${VLAD_OUTPUT}/.htaccess
