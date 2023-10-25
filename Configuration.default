@@ -6,16 +6,31 @@ fi
 
 . ${MGICONFIG}/master.config.sh
 
+# where the vlad repo is installed
 export VLAD=${MGI_LIVE}/vlad
+
+# URL path to vlad
 export VLAD_URL=/vlad
+
+# where vlad builds into. Vlad is served from here/
 export VLAD_BUILD=${VLAD}/build
+
+# parent directory for all Vlad data
 export VLAD_DATA_ROOT=${DATALOADSOUTPUT}/mgi/vlad_data
+
+# directory of inputs files for vlad (ontologies and annotations)
 export VLAD_DATA=${VLAD_DATA_ROOT}/data
+
+# directory of vad results. Each run creates a subdirectory here.
 export VLAD_OUTPUT=${VLAD_DATA_ROOT}/output
+
+# Temp directory for holding uploaded files 
 export VLAD_TMP=${VLAD_DATA_ROOT}/tmp
 
-export PYTHONPATH=.:PYTHONPATH=${VLAD}/libvlad:${PYTHONPATH}
-
+# Data refresh runs a script that queries MGI for MP-Gene annotations
 export PG_DBSERVER=mgi-adhoc
 export PG_DBNAME=mgd
 export PG_DBUSER=mgd_public
+
+#
+export PYTHONPATH=.:PYTHONPATH=${VLAD}/libvlad:${PYTHONPATH}
