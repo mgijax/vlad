@@ -51,7 +51,10 @@ gunzip -c gene_association.mgi.gz > gene_association.mgi
 # -----------------------------------------------------------------
 # -----------------------------------------------------------------
 
-/opt/python3.7/bin/python3 ${VLAD}/bin/dumpMPAnnotations.py -gene > MPGeneAnnots.txt
-
+# mirror the MP
 wget -a LOG -S -N http://www.informatics.jax.org/downloads/reports/MPheno_OBO.ontology
 mv MPheno_OBO.ontology mammalian_phenotype.obo
+
+# generate MP-mouse gene annotation file
+/opt/python3.7/bin/python3 ${VLAD}/bin/dumpMPAnnotations.py -gene > MPGeneAnnots.txt
+
