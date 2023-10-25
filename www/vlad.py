@@ -15,7 +15,6 @@ def removeTempFile(file):
     os.remove(file)
 
 def writeTempFile(contents):
-    print("temp dir = ", TMPDIR)
     fd,name = tempfile.mkstemp(dir=TMPDIR)
     fp = os.fdopen(fd, 'wb')
     fp.write(contents)
