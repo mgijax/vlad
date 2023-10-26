@@ -305,6 +305,12 @@ window.onload = function(){
 body {
     background-color: #DFEFFF;
 }
+
+#title {
+    position: relative;
+    top: 10px;
+}
+
 .inputcontrol {
     vertical-align: top;
 }
@@ -410,9 +416,9 @@ body {
 
 <h1>
    <img src="vlad_logo.gif" align="middle" />
-   Vlad - Gene List Analysis and Visualization
-   <a href="https://www.informatics.jax.org/" style="background-color: transparent">
-       <img id="mgilogo" src="https://www.informatics.jax.org/webshare/images/mgi_logo.gif" border="0"></img>
+   <span id="title" >Vlad - Gene List Analysis and Visualization</span>
+   <a href="/" style="background-color: transparent">
+       <img id="mgilogo" src="/webshare/images/mgi_logo.gif" border="0"></img>
    </a>
  </h1>
 <span style="font-size : 10;">Version %(vladVersion)s</span>

@@ -7,6 +7,7 @@ cd vlad
 
 # Configure. Defaults are for MGI installs.
 cp Configuration.default Configuration
+#
 # Edit as needed
 vim Configuration 
 
@@ -16,5 +17,6 @@ vim Configuration
 # Get/refresh data. Rerun as needed.
 bin/refresh_data
 
-# Apache config. Vlad is served from the build directory
+# Update Apache config. Vlad is served from the build directory
+# Requires restart.
 Alias /vlad  /full/path/to/vlad/build
