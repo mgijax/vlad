@@ -770,6 +770,7 @@ CSSSTYLE= '''
 
     table.results {
         border: thin solid black;
+        position: relative;
     }
 
     .label { 
@@ -783,6 +784,8 @@ CSSSTYLE= '''
 
     table.results th {
         border-right: thin solid black;
+        position: sticky;
+        top: 0px;
     }
 
     table.results td {
