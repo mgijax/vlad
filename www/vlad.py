@@ -148,17 +148,9 @@ def runVlad(form):
 
     if "gLimitBy" in form:
         limitby = form['gLimitBy'].value
+        args.append("--gCutoffType")
+        args.append(limitby)
         cutoff = form.getvalue("gValue")
-        if limitby == "topn":
-            cutoff = str(abs(int(cutoff)))
-        elif limitby == "topnlocal":
-            cutoff = str(-abs(int(cutoff)))
-        elif limitby == "pval":
-            try:
-                exp = -abs(int(cutoff))
-                cutoff = str(10 ** exp)
-            except ValueError:
-                cutoff = str(float(cutoff))
         args.append("--gCutoff")
         args.append(cutoff)
 

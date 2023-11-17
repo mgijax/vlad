@@ -15,6 +15,17 @@ function setDelButtonDisabled(bool){
     var b = document.getElementById('delButton');
     b.disabled = bool;
 }
+
+function setDefaultLimitValue(el) {
+    let deflt
+    if (el.value === 'pval' || el.value === 'qval') {
+        dflt = "0.05"
+    } else {
+        dflt = "25"
+    }
+    document.getElementById("gValue").value = dflt
+}
+
 function addQuerySet(){
     var qstbl = document.getElementById("qsets");
     var i = qstbl.rows.length;
@@ -698,10 +709,11 @@ body {
 	    <tr>
 	    <td class="inputlabel">Limit nodes:</td>
 	    <td>
-	    <select id="gLimitBy" name="gLimitBy">
+	    <select id="gLimitBy" name="gLimitBy" onchange="setDefaultLimitValue(this)">
 	    <option value="topn" selected="true" > ...to top N overall.</option>
-	    <option value="topnlocal" > ...to N local maxima.</option>
+	    <option value="nmaxima" > ...to N local maxima.</option>
 	    <option value="pval"> ...by P-value.</option>
+	    <option value="qval"> ...by Q-value.</option>
 	    </select>
 	    <br>
 	    <span class="inputlabel">Value: </span>
@@ -765,11 +777,13 @@ body {
 	    <li> Limit nodes/Value. Specifies the set of nodes to be drawn:
 	        <ul>
 		<li> ...to top N overall. Draws the top N scoring terms and their ancestors.
-		     Enter N (an integer) into Value.
+		     Enter N (an integer) into Value. Default = 25.
 		<li> ...to N local maxima. Draws the top N scoring local maxima (<a href="#">what's this?)</a>) 
-		     and their ancestors. Enter N (an integer) into Value.
+		     and their ancestors. Enter N (an integer) into Value. Default = 25.
 		<li> ...by P-value. Draws terms whose score (minimum P-value) is less than or equal to P.
-		Enter P (a floating point number, e.g., .0001 or 1E-4) into Value.
+		Enter P (a floating point number, e.g., .0001 or 1E-4) into Value. Default = 0.05.
+		<li> ...by Q-value. Draws terms whose score (minimum Q-value) is less than or equal to Q.
+		Enter Q (a floating point number, e.g., .0001 or 1E-4) into Value. Default = 0.05.
 		</ul>
 	    <li> Cull interior nodes. 
 		<ul>

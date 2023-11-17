@@ -330,6 +330,10 @@ class HTMLWriter(ResultsWriter):
 
     def _writeHtmlTable_(self, fp, ns, idsInMap):
         # write the results table for this namespace
+        greenballImg = '<img border="0" src="%s" />' % (self.imgurlroot+'/ball.gif')
+        if self.vlad.options.gEnable:
+            fp.write(f'<div style="font-size: smaller;">{greenballImg} A green dot indicates a term that also appears in the graph. ' \
+                + 'Click the dot to jump to that node (and vice versa).</div>' )
         fp.write('<div class="results">')
         fp.write('<table border="0" cellspacing="0" cellpadding="2" class="results">')
         #
@@ -368,8 +372,8 @@ class HTMLWriter(ResultsWriter):
             if idsInMap and r.term.id in idsInMap:
                 imgLink = \
                   ('<a href="#" onclick="hilightNode(\'%s\'); return false;">' \
-                  + '<img border="0" src="%s" /></a>') \
-                  % (r.term.id,self.imgurlroot+"/ball.gif")
+                  + greenballImg + '</a>') \
+                  % r.term.id
                 rowvals[0] = imgLink + '&nbsp;' + rowvals[0]
             #
             tdTags = ['td']*len(rowvals)
@@ -469,6 +473,7 @@ class DOTWriter(ResultsWriter):
     def __init__(self, 
         vlad,           # a Vlad instance
         roi=[],         # region of interest; a list of term ids
+        cutoffType="pval", # pval, qval, topn, or nmaxima
         cutoff=0.001,   # cutoff val. float, int, or negative int
         includeAncestors=True, # if true, do upward closure
         maxImgSize=None,# max image size (w,h), or None for unlimited
@@ -478,6 +483,7 @@ class DOTWriter(ResultsWriter):
         #
         ResultsWriter.__init__(self, vlad)
         self.roi = roi
+        self.cutoffType = cutoffType
         self.cutoff = cutoff
         self.includeAncestors = includeAncestors
         self.additional = additional    # [(fmt,ext)]
@@ -490,50 +496,51 @@ class DOTWriter(ResultsWriter):
         # If a region of interest was specified, terms must additionally
         # come from within the region.
         terms = set()
-        if type(self.cutoff) is int:
-            if self.cutoff > 0:
-                # keep first N terms
-                for r in nsresults:
-                    if len(terms) >= self.cutoff :
+        if self.cutoffType == "topn":
+            # keep first N terms
+            for r in nsresults:
+                if len(terms) >= self.cutoff :
+                    break
+                if self.roi and r.term not in self.roi:
+                    continue
+                terms.add(r.term)
+        elif self.cutoffType == "nmaxima":
+            # keep the top N local minima (with respect to P val)
+            # Gotta find 'em first.
+            # (N/A if analysis type === percentages)
+            nterms = self.cutoff
+            for r in nsresults:
+                rt = r.term
+                if self.roi and rt not in self.roi:
+                    continue
+                # Now check the min P val for the nodes in the family (i.e.,
+                # parents and children) of the current term.
+                family = self.vlad.ontology.getChildren(rt) + self.vlad.ontology.getParents(rt)
+                for n in family:
+                    # if the other node has a smaller score or is a
+                    # child with an equal score, I'm not a local max.
+                    nr = self.vlad.term2results[namespace].get(n,None)
+                    if nr \
+                    and (nr[0].minpval < r.minpval \
+                    or nr[0].minpval == r.minpval \
+                    and self.vlad.ontology.isChild(nr[0].term, rt)):
+                        # rt is not a local minimum
                         break
-                    if self.roi and r.term not in self.roi:
-                        continue
-                    terms.add(r.term)
-            elif self.cutoff < 0:
-                # keep the top N local minima (with respect to P val)
-                # Gotta find 'em first.
-                # (N/A if analysis type === percentages)
-                nterms = -self.cutoff
-                for r in nsresults:
-                    rt = r.term
-                    if self.roi and rt not in self.roi:
-                        continue
-                    # Now check the min P val for the nodes in the family (i.e.,
-                    # parents and children) of the current term.
-                    family = self.vlad.ontology.getChildren(rt) + self.vlad.ontology.getParents(rt)
-                    for n in family:
-                        # if the other node has a smaller score or is a
-                        # child with an equal score, I'm not a local max.
-                        nr = self.vlad.term2results[namespace].get(n,None)
-                        if nr \
-                        and (nr[0].minpval < r.minpval \
-                        or nr[0].minpval == r.minpval \
-                        and self.vlad.ontology.isChild(nr[0].term, rt)):
-                            # rt is not a local minimum
-                            break
-                    else:
-                        # rt is a local minimum. Add it to our set.
-                        terms.add(rt)
-                        if len(terms) >= nterms :
-                            break
-        elif type(self.cutoff) is float:
+                else:
+                    # rt is a local minimum. Add it to our set.
+                    terms.add(rt)
+                    if len(terms) >= nterms :
+                        break
+        else:
             for r in nsresults:
                 if self.vlad.options.analysis == "percentage":
                     if r.maxpval < self.cutoff :
                         break
-                else:
-                    if r.minpval >= self.cutoff :
-                        break
+                elif self.cutoffType == "pval" and r.minpval >= self.cutoff :
+                    break
+                elif self.cutoffType == "qval" and r.minqval >= self.cutoff :
+                    break
+                #
                 if self.roi and r.term not in self.roi:
                     continue
                 terms.add(r.term)
@@ -830,6 +837,8 @@ function submitForm(idlist){
     form.%s.value = idlist;
     form.submit();
 }
+// Handler for clicks on nodes in the graph.
+// Find corresponding table row and scroll to it.
 function nodeClicked(areaElt,evt){
     var h = areaElt.href;
     var i = h.lastIndexOf('#');
@@ -839,6 +848,12 @@ function nodeClicked(areaElt,evt){
     var e = document.getElementById(goid);
     if(e){
         e.scrollIntoView()
+        // Adjustment to account for frozen header row, which obscures the first data row when 
+        // you're scrolled down.
+        // Edge case: if jumping to last row, don't adjust (or last row will be scrolled below vis area).
+        t = e.closest('table')
+        d = t.closest('div.results')
+        if(d.scrollTop > 20 && e.rowIndex !== t.rows.length - 1) d.scrollTop -= 25
         evt.cancelBubble = true;
         return false;
     }

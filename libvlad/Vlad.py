@@ -449,6 +449,20 @@ class VladCGI(Vlad):
         def error(self, msg):
             raise VladCGI.ParameterError(msg)
 
+    def parseArgs(self, args):
+        Vlad.parseArgs(self, args)
+        if self.options.gCutoffType in ['pval','qval']:
+            val = float(self.options.gCutoff)
+            if val < 0 or val > 1.0:
+                raise RuntimeError("Illegal value %s: %s" % (self.options.gCutoffType, self.options.gCutoff))
+        elif self.options.gCutoffType in ['topn','nmaxima']:
+            val = int(self.options.gCutoff)
+            if val < 1:
+                raise RuntimeError("Illegal value %s: %s" % (self.options.gCutoffType, self.options.gCutoff))
+        else:
+            raise RuntimeError("Unknown gCutoffType: " + str(self.options.gCutoffType))
+        self.options.gCutoff = val
+
     def parseGCutoffValue(self, value):
         try:
             if value is None or value.lower() == "none":
@@ -459,9 +473,6 @@ class VladCGI(Vlad):
                 return float(value)
         except:
             raise RuntimeError("cutoff must be a number or 'none'")
-
-    def parseGCutoffArg(self, option, opt_str, value, parser):
-        setattr(parser.values, option.dest, self.parseGCutoffValue(value))
 
     def parseGMaxImgSizeValue(self, value):
         if value is None:
@@ -585,16 +596,20 @@ class VladCGI(Vlad):
             help="Specifies a color for nodes. (default=gray)")
 
         self.optParser.add_option(
+            "--gCutoffType", 
+            dest="gCutoffType",
+            metavar="CUTOFFTYPE",
+            type="choice",
+            default="topn",
+            choices=["topn","nmaxima","pval","qval"],
+            help="Which value to use for cutoff test: pval = P-value; qval = Q-value; topn = keep only top N scoring terms; nmaxima = keey top N local maxima.")
+
+        self.optParser.add_option(
             "--gCutoff", 
             dest="gCutoff",
-            default=10,
-            action="callback",
-            callback=self.parseGCutoffArg,
-            type="string",
+            default="10",
             metavar="CUTOFF", 
-            help="Cutoff value. Specify integer for top n results" + \
-                 " or float for P-value cutoff. E.g. '--gc 10' keeps only top ten results." + \
-                 " '--gc 1e-4' keeps results where P <= 0.0001." )
+            help="Cutoff value appropriate for gCutoffType. E.g. .05 for a P-value cutoff, or 25 for a topn cutoff.")
 
         self.optParser.add_option(
             "--gCull", 
@@ -730,6 +745,7 @@ class VladCGI(Vlad):
         # Generate the dot files, image files, and imagemap files.
         dw = ResultsWriter.DOTWriter(self, 
             roi=self.gROI,
+            cutoffType=self.options.gCutoffType,
             cutoff=self.options.gCutoff,
             includeAncestors = self.options.gIncAncestors,
             maxImgSize = self.options.gMaxImgSize,
@@ -762,15 +778,18 @@ class VladCGI(Vlad):
                 ns2img[ns][1] = [mfile,idsInMap]
 
         # generate a "cutoff" summary message
-        if type(self.options.gCutoff) is int:
-            if self.options.gCutoff > 0:
-                coff = "Top %d scoring terms" % self.options.gCutoff
-            else:
-                coff = "Top %d local maximum terms" % -self.options.gCutoff
-        elif self.options.analysis == "percentage":
+        if self.options.analysis == "percentage":
             coff = "Terms with max percentage > %1.3g" % self.options.gCutoff
-        else:
+        elif self.options.gCutoffType == "topn":
+            coff = "Top %d scoring terms" % self.options.gCutoff
+        elif self.options.gCutoffType == "nmaxima":
+            coff = "Top %d local maximum terms" % self.options.gCutoff
+        elif self.options.gCutoffType == "qval":
+            coff = "Terms with min Qval <= %1.3g" % self.options.gCutoff
+        elif self.options.gCutoffType == "pval":
             coff = "Terms with min Pval <= %1.3g" % self.options.gCutoff
+        else:
+            raise RuntimeError("Internal error. Should never get here!")
 
         if self.options.gIncAncestors:
             coff += " and their ancestors"

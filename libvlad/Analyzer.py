@@ -60,7 +60,7 @@ class EnrichmentAnalyzer(object):
                 namespace,      # string
                 annotations,    # AnnotationSet
                 excludeCodes,   # set(string)
-                termminmax,     # { term -> [minP, maxP] }
+                termminmax,     # { term -> [minP, maxP, minQ, maxQ] }
                 analysis):      # "enrichment" or "depletion" or "percentage"
         '''
         Performs enrichment analysis for a given query set against a given 
@@ -128,10 +128,6 @@ class EnrichmentAnalyzer(object):
                 # create the result record and append to results list
                 result = TermQSResult( qsid, term, alist, qssize, ossize, usize, pval )
                 results.append(result)
-            # accumulate min/max p values for each term
-            tmm = termminmax.setdefault(term, [1.0, 0.0])
-            tmm[0] = min(tmm[0], result.pval)
-            tmm[1] = max(tmm[1], result.pval)
             # end loop
 
         # Calculate Q-values from the P-values
@@ -148,6 +144,18 @@ class EnrichmentAnalyzer(object):
                 x = (N*r.pval)/i
                 minx = min(minx, x)
                 r.qval = minx
+                r.minqval = minx
+                r.maxqval = minx
+
+        for result in results:
+            term = result.term
+            # accumulate min/max p values for each term
+            tmm = termminmax.setdefault(term, [1.0, 0.0, 1.0, 0.0])
+            tmm[0] = min(tmm[0], result.pval)
+            tmm[1] = max(tmm[1], result.pval)
+            tmm[2] = min(tmm[2], result.qval)
+            tmm[3] = max(tmm[3], result.qval)
+            
 
         # return list of unfound items and list of result records.
         return (notfound,results)
@@ -187,7 +195,7 @@ class EnrichmentAnalyzer(object):
         notfound = {}   # { ns -> [ [string] ] }
         results = {}    # { ns -> [ TermQSResult ] }
         term2results={} # { ns -> { term -> [ TermQSResult ] } }
-        termminmax = {} # { term -> [ minP, maxP ] }
+        termminmax = {} # { term -> [ minP, maxP, minQ, maxQ ] }
         self.term2zeroResults = {} # { term -> [ TermQSResult(qsid,0) ] }
         #
         # first pass: for each ontology namespace (i.e., each dag) and query
@@ -223,6 +231,8 @@ class EnrichmentAnalyzer(object):
                 r.minpval = tmm[0]
                 r.maxpval = tmm[1]
                 r.pratio = r.minpval / r.maxpval
+                r.minqval = tmm[2]
+                r.maxqval = tmm[3]
             nsresults.sort(key=lambda x: x.key(), reverse=(analysis==PERCENTAGE))
 
         # this can get pretty big, so make it avail for gc
