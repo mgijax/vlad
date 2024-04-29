@@ -28,7 +28,7 @@ cd ${VLAD_DATA}
 # Where to get annotation files. The GO ftp site.
 export GOURL=http://purl.obolibrary.org/obo/go/go-basic.obo
 export HUMANGAF=http://release.geneontology.org/2021-02-01/annotations/goa_human.gaf.gz
-export MGIGAF=http://www.informatics.jax.org/downloads/reports/gene_association.mgi.gz
+export MGIGAF=https://current.geneontology.org/annotations/mgi.gaf.gz
 
 rm -f LOG
 
@@ -46,7 +46,7 @@ wget -a LOG --server-response --timestamping $MGIGAF
 # uncompress
 #
 gunzip -c goa_human.gaf.gz > gene_association.goa_human
-gunzip -c gene_association.mgi.gz > gene_association.mgi
+gunzip -c mgi.gaf.gz > gene_association.mgi
 
 # -----------------------------------------------------------------
 # -----------------------------------------------------------------
