@@ -1,4 +1,3 @@
-#!/bin/env python
 
 import sys
 import types
@@ -147,7 +146,7 @@ class VladInstaller(object):
             
     def writeCgi (self) :
         bash = self.dstConfig.get('VLAD', 'bash' )
-        python = self.dstConfig.get('VLAD', 'python')
+        python = os.environ["PYTHON"]
         cgiScriptFile = self.dstConfig.get('VLAD', 'scriptfile')
         cgiFile = os.path.join(self.dstCgiDir, cgiScriptFile)
         with open(cgiFile, 'w') as fd:

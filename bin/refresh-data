@@ -56,5 +56,5 @@ wget -a LOG -S -N http://www.informatics.jax.org/downloads/reports/MPheno_OBO.on
 mv MPheno_OBO.ontology mammalian_phenotype.obo
 
 # generate MP-mouse gene annotation file
-/opt/python3.7/bin/python3 ${VLAD}/bin/dumpMPAnnotations.py -gene > MPGeneAnnots.txt
+${PYTHON} ${VLAD}/bin/dumpMPAnnotations.py -gene > MPGeneAnnots.txt
 
