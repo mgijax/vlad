@@ -185,7 +185,7 @@ class OboParser(object):
 
     def parseFile(self, file):
         if type(file) is str:
-            self.fd = open(file, 'U')
+            self.fd = open(file, 'r')
         else:
             self.fd = file
         self.__go__()

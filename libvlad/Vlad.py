@@ -302,7 +302,7 @@ class Vlad(object):
         return [_f for _f in re.split( r'\W+', value.upper() ) if _f]
 
     def readFile(self, fname):
-        fd = open(fname, 'U')
+        fd = open(fname, 'r')
         results = fd.read()
         fd.close()
         return results
@@ -683,7 +683,7 @@ class VladCGI(Vlad):
         so the user gets a popup over each node. Also add onclick handler: nodeClicked().
         '''
         idsInMap = set()
-        fd = open(fname, 'U')
+        fd = open(fname, 'r')
         areas = []
         for line in fd:
             tokens = line[:-1].split()

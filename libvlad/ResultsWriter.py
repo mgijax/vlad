@@ -313,7 +313,7 @@ class HTMLWriter(ResultsWriter):
             return html
 
     def getClientSideImageMap(self, fname):
-        fd = open(fname, 'U')
+        fd = open(fname, 'r')
         imap = fd.read()
         fd.close()
         return imap
